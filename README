@@ -21,6 +21,13 @@ in postgresql execute:
 
 	CREATE EXTENSION uri;
 
+You need to install liburi to be able to compile the uri
+extension. liburi is a simple interface for parsing URIs
+based on uriparser. the library can be downloaded here:
+
+   https://github.com/nevali/liburi
+
+
 Functions
 ---------
 uri_get_scheme(uri) return protocol part of uri
