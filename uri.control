@@ -1,0 +1,5 @@
+# uri extension
+comment = 'Data type to store uri '
+default_version = '0.1'
+module_pathname = '$libdir/uri'
+relocatable = true

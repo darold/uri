@@ -1,0 +1,42 @@
+{
+ "name": "uri",
+ "abstract": URI data type for Postgresql ",
+ "version": "0.1.0",
+ "maintainer": "Gilles Darold <gilles@darold.net>",
+ "license": "postgresql",
+ "provides": {
+    "email": {
+       "abstract": "URI data type for Postgresql",
+       "file": "uri--0.1.sql",
+       "docfile": "README",
+       "version": "0.1.0"
+    }
+ },
+ "prereqs": {
+    "runtime": {
+       "requires": {
+          "PostgreSQL": "8.4.0"
+       }
+    }
+ },
+ "resources": {
+    "bugtracker": {
+       "web": "https://github.com/darold/uri"
+    },
+    "repository": {
+      "url":  "https://github.com/darold/uri.git",
+      "web":  "https://github.com/darold/uri ",
+      "type": "git"
+    }
+ },
+ "generated_by": "Gilles Darold",
+ "meta-spec": {
+    "version": "1.0.0",
+    "url": "http://pgxn.org/meta/spec.txt"
+ },
+ "tags": [
+    "uri",
+    "data type"
+   
+ ]
+}
