@@ -73,6 +73,7 @@ uri_in(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_str(h_uri, buffer, BUFFER_SIZE);
         uri_destroy(h_uri);
@@ -134,6 +135,7 @@ uri_get_scheme(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_scheme(uri, buffer, 8);
         uri_destroy(uri);
@@ -156,6 +158,7 @@ uri_get_auth(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_auth(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -178,6 +181,7 @@ uri_get_host(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_host(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -200,6 +204,7 @@ uri_get_port(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_port(uri, buffer, 6);
         uri_destroy(uri);
@@ -221,6 +226,7 @@ uri_get_portnum(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_portnum(uri);
         uri_destroy(uri);
@@ -243,6 +249,7 @@ uri_get_path(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_path(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -265,6 +272,7 @@ uri_get_query(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_query(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -287,6 +295,7 @@ uri_get_fragment(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_fragment(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -304,6 +313,12 @@ uri_is_absolute(PG_FUNCTION_ARGS)
 	int	r;
 
 	uri = uri_create_str(url, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
+	}
 	r = uri_absolute(uri);
         uri_destroy(uri);
 
@@ -324,6 +339,7 @@ uri_is_absolute_path(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_absolute_path(uri);
         uri_destroy(uri);
@@ -346,6 +362,7 @@ uri_get_str(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
+		PG_RETURN_NULL();
 	}
 	r = uri_str(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -623,6 +640,7 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url1)));
+		PG_RETURN_NULL();
 	}
 	r = uri_path(uri, localpath, MAXPGPATH);
         uri_destroy(uri);
