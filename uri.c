@@ -55,6 +55,8 @@ Datum		uri_localfile_exists(PG_FUNCTION_ARGS);
 Datum		uri_contains(PG_FUNCTION_ARGS);
 Datum		uri_contained(PG_FUNCTION_ARGS);
 Datum		uri_rebase(PG_FUNCTION_ARGS);
+Datum		uri_localpath_exists(PG_FUNCTION_ARGS);
+Datum		uri_localpath_size(PG_FUNCTION_ARGS);
 
 
 PG_FUNCTION_INFO_V1(uri_in);
@@ -604,6 +606,39 @@ uri_rebase(PG_FUNCTION_ARGS)
 
 	PG_RETURN_POINTER((t_uri *) cstring_to_text(buffer));
 }
+
+PG_FUNCTION_INFO_V1(uri_localpath_size);
+Datum
+uri_localpath_size(PG_FUNCTION_ARGS)
+{
+	Datum		url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		localpath[MAXPGPATH];
+	URI		*uri;
+	bool		exists;
+	struct stat	statbuf;
+	size_t		r;
+
+	uri = uri_create_str(url1, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url1)));
+	}
+	r = uri_path(uri, localpath, MAXPGPATH);
+        uri_destroy(uri);
+
+        /* Does the corresponding local file exists? */
+        if (lstat(localpath, &statbuf) < 0)
+        {
+                if (errno != ENOENT)
+			ereport(FATAL, (errmsg("could not stat file \"%s\": %s", localpath, strerror(errno))));
+		PG_RETURN_NULL();
+        }
+
+	PG_RETURN_INT64(statbuf.st_size);
+
+}
+
 
 /*
  ereport(LOG, (errmsg("Some error msg: %s", err)));
