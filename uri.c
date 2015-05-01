@@ -1,13 +1,12 @@
-/*  Gilles Darold (gilles@darold.net)
- *
- * uri is an extention to store wellformed URI
- * and retrieve URL informations
- *
+/* *
+ * Uri is an extention to store wellformed URI and retrieve URL informations
+ * Author: Gilles Darold (gilles@darold.net)
+ * Copyright (c) 2015 Dalibo - All rights reserved.
  * */
 
-
-/*
- * uri is a extension to add uri data type for postgresql,
+/* *
+ *
+ * uri is an extension to add uri data type for postgresql,
  * it allows to insert data in uri format and provide all
  * functions to extract uri parts and compare uris.
  * It has the following operators =, <>, <, <=, >, >=, @>
@@ -25,8 +24,6 @@
 #include <sys/stat.h>
 
 #define BUFFER_SIZE 8192
-#define DatumGetUri(X) ((uritype *) PG_DETOAST_DATUM_PACKED(X))
-#define GETARG_URI(n)  DatumGetUri(PG_GETARG_DATUM(n))
 
 typedef struct varlena t_uri;
 int search_str(char src[], char search[]);
