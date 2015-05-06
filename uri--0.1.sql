@@ -1,3 +1,10 @@
+-- uri extension for PostgreSQL
+-- Author Gilles Darold
+-- Copyright (c) 2015 Dalibo - All rights reserved.
+
+-- complain if script is sourced in psql, rather than via CREATE EXTENSION
+\echo Use "CREATE EXTENSION uri" to load this file. \quit
+
 CREATE TYPE uri;
 CREATE FUNCTION uri_in(cstring) RETURNS uri AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION uri_out(uri) RETURNS cstring AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
@@ -15,6 +22,8 @@ CREATE TYPE uri (
 
 CREATE CAST (uri AS text) WITH INOUT AS ASSIGNMENT;
 CREATE CAST (text AS uri) WITH INOUT AS ASSIGNMENT;
+CREATE CAST (uri AS varchar) WITH INOUT AS ASSIGNMENT;
+CREATE CAST (varchar AS uri) WITH INOUT AS ASSIGNMENT;
 
 -- URI manipulation function
 CREATE FUNCTION uri_get_scheme(uri) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
