@@ -22,8 +22,12 @@
 #include "utils/builtins.h"
 #include <liburi.h>
 #include <sys/stat.h>
+#include <curl/curl.h>
 
+#define LBUFSIZ		32768
 #define BUFFER_SIZE 8192
+#define MAXREDIR     3
+#define CURL_TIMEOUT 6
 
 typedef struct varlena t_uri;
 int search_str(char src[], char search[]);
@@ -54,6 +58,8 @@ Datum		uri_contained(PG_FUNCTION_ARGS);
 Datum		uri_rebase(PG_FUNCTION_ARGS);
 Datum		uri_localpath_exists(PG_FUNCTION_ARGS);
 Datum		uri_localpath_size(PG_FUNCTION_ARGS);
+Datum		uri_remotepath_exists(PG_FUNCTION_ARGS);
+Datum		uri_remotepath_size(PG_FUNCTION_ARGS);
 
 
 PG_FUNCTION_INFO_V1(uri_in);
@@ -652,6 +658,151 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 
 	PG_RETURN_INT64(statbuf.st_size);
 
+}
+
+PG_FUNCTION_INFO_V1(uri_remotepath_exists);
+Datum
+uri_remotepath_exists(PG_FUNCTION_ARGS)
+{
+	Datum		url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		buffer[BUFFER_SIZE];
+	URI		*uri;
+	bool		exists;
+	size_t		r;
+	struct curl_slist *slist = NULL;
+	CURL *eh = NULL;        /* libcurl handler */
+	CURLcode res ;
+	char err[CURL_ERROR_SIZE];
+
+	uri = uri_create_str(url, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+	}
+	r = uri_str(uri, buffer, BUFFER_SIZE);
+        uri_destroy(uri);
+
+	/* curl init */
+	curl_global_init (CURL_GLOBAL_ALL);
+	/* get an easy handle */
+	if ((eh = curl_easy_init ()) == NULL)
+	{
+		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		curl_global_cleanup ();
+		PG_RETURN_NULL();
+	}
+	else
+	{
+          /* set the error buffer */
+          curl_easy_setopt (eh, CURLOPT_ERRORBUFFER, err);
+          /* do not install signal  handlers in thread context */
+          curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
+          /* Force HTTP 1.0 version */
+          curl_easy_setopt (eh, CURL_HTTP_VERSION_1_0, TRUE);
+          /* Do not fail on errors: use to prevent breaked download */
+	  curl_easy_setopt (eh, CURLOPT_FAILONERROR, FALSE);
+          /* follow location (303 MOVED) */
+          curl_easy_setopt (eh, CURLOPT_FOLLOWLOCATION, TRUE);
+          /* only follow MAXREDIR redirects */
+          curl_easy_setopt (eh, CURLOPT_MAXREDIRS, MAXREDIR);
+          /* overwrite the Pragma: no-cache HTTP header */
+          slist = curl_slist_append(slist, "pragma:");
+          curl_easy_setopt (eh, CURLOPT_HTTPHEADER, slist);
+          /* set the url */
+          curl_easy_setopt (eh, CURLOPT_URL, url);
+          /* set the libcurl transfer timeout to max CURL_TIMEOUT second for header */
+          curl_easy_setopt (eh, CURLOPT_TIMEOUT, CURL_TIMEOUT);
+          /* Suppress error: SSL certificate problem, verify that the CA cert is OK */
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYHOST, FALSE);
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYPEER, FALSE);
+	  /* only get the header to check size and content type */
+	  curl_easy_setopt (eh, CURLOPT_NOBODY, TRUE);
+	}
+
+	res = curl_easy_perform (eh);
+	if (res != CURLE_OK) {
+		exists = false;
+	} else {
+		exists = true;
+	}
+	curl_global_cleanup ();
+
+	PG_RETURN_BOOL(exists);
+
+}
+
+PG_FUNCTION_INFO_V1(uri_remotepath_size);
+Datum
+uri_remotepath_size(PG_FUNCTION_ARGS)
+{
+	Datum		url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		buffer[BUFFER_SIZE];
+	URI		*uri;
+	size_t		r;
+	struct curl_slist *slist = NULL;
+	CURL *eh = NULL;        /* libcurl handler */
+	CURLcode res ;
+	char err[CURL_ERROR_SIZE];
+	double filesize = 0.0;
+
+	uri = uri_create_str(url, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+	}
+	r = uri_str(uri, buffer, BUFFER_SIZE);
+        uri_destroy(uri);
+
+	/* curl init */
+	curl_global_init (CURL_GLOBAL_ALL);
+	/* get an easy handle */
+	if ((eh = curl_easy_init ()) == NULL)
+	{
+		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		curl_global_cleanup ();
+		PG_RETURN_NULL();
+	}
+	else
+	{
+          /* set the error buffer */
+          curl_easy_setopt (eh, CURLOPT_ERRORBUFFER, err);
+          /* do not install signal  handlers in thread context */
+          curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
+          /* Force HTTP 1.0 version */
+          curl_easy_setopt (eh, CURL_HTTP_VERSION_1_0, TRUE);
+          /* Do not fail on errors: use to prevent breaked download */
+	  curl_easy_setopt (eh, CURLOPT_FAILONERROR, FALSE);
+          /* follow location (303 MOVED) */
+          curl_easy_setopt (eh, CURLOPT_FOLLOWLOCATION, TRUE);
+          /* only follow MAXREDIR redirects */
+          curl_easy_setopt (eh, CURLOPT_MAXREDIRS, MAXREDIR);
+          /* overwrite the Pragma: no-cache HTTP header */
+          slist = curl_slist_append(slist, "pragma:");
+          curl_easy_setopt (eh, CURLOPT_HTTPHEADER, slist);
+          /* set the url */
+          curl_easy_setopt (eh, CURLOPT_URL, url);
+          /* set the libcurl transfer timeout to max CURL_TIMEOUT second for header */
+          curl_easy_setopt (eh, CURLOPT_TIMEOUT, CURL_TIMEOUT);
+          /* Suppress error: SSL certificate problem, verify that the CA cert is OK */
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYHOST, FALSE);
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYPEER, FALSE);
+	  /* only get the header to check size and content type */
+	  curl_easy_setopt (eh, CURLOPT_NOBODY, TRUE);
+	}
+
+	res = curl_easy_perform (eh);
+	if (res == CURLE_OK) {
+		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
+		if ((res != CURLE_OK) || (filesize < 0.0)) {
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
+		}
+	}
+	curl_global_cleanup ();
+
+	PG_RETURN_INT32(filesize);
 }
 
 
