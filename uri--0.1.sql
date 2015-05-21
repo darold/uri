@@ -37,11 +37,50 @@ CREATE FUNCTION uri_get_fragment(uri) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE
 CREATE FUNCTION uri_is_absolute(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION uri_is_absolute_path(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION uri_get_str(uri) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION uri_localpath_exists(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION uri_remotepath_exists(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION uri_localpath_size(uri) RETURNS bigint AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION uri_remotepath_size(uri) RETURNS bigint AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION uri_localpath_exists(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
+CREATE FUNCTION uri_remotepath_exists(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
+CREATE FUNCTION uri_localpath_size(uri) RETURNS bigint AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
+CREATE FUNCTION uri_remotepath_size(uri) RETURNS bigint AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
 CREATE FUNCTION uri_rebase(uri, uri) RETURNS uri AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION uri_path_exists(uri) RETURNS bool AS $$
+DECLARE
+	scheme  text;
+	path_exists boolean;
+BEGIN
+
+	SELECT uri_get_scheme($1) INTO scheme;
+
+	IF scheme IS NULL OR scheme = 'file' THEN
+		SELECT uri_localpath_exists($1) INTO path_exists;
+        ELSE
+		SELECT uri_remotepath_exists($1) INTO path_exists;
+	END IF;
+
+	RETURN path_exists;
+END
+$$
+LANGUAGE plpgsql STRICT;
+
+CREATE FUNCTION uri_path_size(uri) RETURNS bigint AS $$
+DECLARE
+	scheme  text;
+	filesize bigint;
+BEGIN
+
+	SELECT uri_get_scheme($1) INTO scheme;
+
+	IF scheme IS NULL OR scheme = 'file' THEN
+		SELECT uri_localpath_size($1) INTO filesize;
+        ELSE
+		SELECT uri_remotepath_size($1) INTO filesize;
+	END IF;
+
+	RETURN filesize;
+END
+$$
+LANGUAGE plpgsql STRICT;
+
 
 -- Indexes related functions
 CREATE FUNCTION uri_hash(uri) RETURNS integer AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
