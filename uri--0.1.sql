@@ -41,6 +41,8 @@ CREATE FUNCTION uri_localpath_exists(uri) RETURNS bool AS 'MODULE_PATHNAME' LANG
 CREATE FUNCTION uri_remotepath_exists(uri) RETURNS bool AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
 CREATE FUNCTION uri_localpath_size(uri) RETURNS bigint AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
 CREATE FUNCTION uri_remotepath_size(uri) RETURNS bigint AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
+CREATE FUNCTION uri_remotepath_content_type(uri) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
+CREATE FUNCTION uri_localpath_content_type(uri) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
 CREATE FUNCTION uri_rebase(uri, uri) RETURNS uri AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
 
 CREATE FUNCTION uri_path_exists(uri) RETURNS bool AS $$
@@ -80,6 +82,26 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql STRICT;
+
+CREATE FUNCTION uri_path_content_type(uri) RETURNS text AS $$
+DECLARE
+	scheme  text;
+	ctype   text;
+BEGIN
+
+	SELECT uri_get_scheme($1) INTO scheme;
+
+	IF scheme IS NULL OR scheme = 'file' THEN
+		SELECT uri_localpath_content_type($1) INTO ctype;
+        ELSE
+		SELECT uri_remotepath_content_type($1) INTO ctype;
+	END IF;
+
+	RETURN ctype;
+END
+$$
+LANGUAGE plpgsql STRICT;
+
 
 
 -- Indexes related functions

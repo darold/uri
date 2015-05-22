@@ -31,6 +31,7 @@
 
 typedef struct varlena t_uri;
 int search_str(char src[], char search[]);
+char *get_filetype(char *filename);
 
 /*
  * Declaration of the URI data type function
@@ -60,6 +61,8 @@ Datum		uri_localpath_exists(PG_FUNCTION_ARGS);
 Datum		uri_localpath_size(PG_FUNCTION_ARGS);
 Datum		uri_remotepath_exists(PG_FUNCTION_ARGS);
 Datum		uri_remotepath_size(PG_FUNCTION_ARGS);
+Datum		uri_remotepath_content_type(PG_FUNCTION_ARGS);
+Datum		uri_localpath_content_type(PG_FUNCTION_ARGS);
 
 
 PG_FUNCTION_INFO_V1(uri_in);
@@ -99,7 +102,6 @@ Datum
 uri_recv(PG_FUNCTION_ARGS)
 {
 	StringInfo	buf = (StringInfo) PG_GETARG_POINTER(0);
-
 
 	BpChar	   *result;
 	char	   *str;
@@ -805,6 +807,137 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 	PG_RETURN_INT32(filesize);
 }
 
+PG_FUNCTION_INFO_V1(uri_remotepath_content_type);
+Datum
+uri_remotepath_content_type(PG_FUNCTION_ARGS)
+{
+	Datum		url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		buffer[BUFFER_SIZE];
+	URI		*uri;
+	size_t		r;
+	struct curl_slist *slist = NULL;
+	CURL *eh = NULL;        /* libcurl handler */
+	CURLcode res ;
+	char err[CURL_ERROR_SIZE];
+	char *content_type;
+
+	uri = uri_create_str(url, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+	}
+	r = uri_str(uri, buffer, BUFFER_SIZE);
+        uri_destroy(uri);
+
+	/* curl init */
+	curl_global_init (CURL_GLOBAL_ALL);
+	/* get an easy handle */
+	if ((eh = curl_easy_init ()) == NULL)
+	{
+		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		curl_global_cleanup ();
+		PG_RETURN_NULL();
+	}
+	else
+	{
+          /* set the error buffer */
+          curl_easy_setopt (eh, CURLOPT_ERRORBUFFER, err);
+          /* do not install signal  handlers in thread context */
+          curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
+          /* Force HTTP 1.0 version */
+          curl_easy_setopt (eh, CURL_HTTP_VERSION_1_0, TRUE);
+          /* Do not fail on errors: use to prevent breaked download */
+	  curl_easy_setopt (eh, CURLOPT_FAILONERROR, FALSE);
+          /* follow location (303 MOVED) */
+          curl_easy_setopt (eh, CURLOPT_FOLLOWLOCATION, TRUE);
+          /* only follow MAXREDIR redirects */
+          curl_easy_setopt (eh, CURLOPT_MAXREDIRS, MAXREDIR);
+          /* overwrite the Pragma: no-cache HTTP header */
+          slist = curl_slist_append(slist, "pragma:");
+          curl_easy_setopt (eh, CURLOPT_HTTPHEADER, slist);
+          /* set the url */
+          curl_easy_setopt (eh, CURLOPT_URL, url);
+          /* set the libcurl transfer timeout to max CURL_TIMEOUT second for header */
+          curl_easy_setopt (eh, CURLOPT_TIMEOUT, CURL_TIMEOUT);
+          /* Suppress error: SSL certificate problem, verify that the CA cert is OK */
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYHOST, FALSE);
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYPEER, FALSE);
+	  /* only get the header to check size and content type */
+	  curl_easy_setopt (eh, CURLOPT_NOBODY, TRUE);
+	}
+
+	res = curl_easy_perform (eh);
+	if (res == CURLE_OK) {
+		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_TYPE, &content_type);
+		if ((res != CURLE_OK) || (content_type == NULL)) {
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
+		}
+	}
+	curl_global_cleanup ();
+
+	PG_RETURN_TEXT_P(cstring_to_text(content_type));
+}
+
+char *
+get_filetype(char *filename)
+{
+
+	FILE *fp;
+	char filetype[LBUFSIZ];
+	char line[BUFFER_SIZE];
+	char cmd[BUFFER_SIZE];
+
+	strcpy(cmd, "/usr/bin/file -b ");
+	strcat(cmd, filename);
+	fp = popen(cmd, "r");
+	if (fp == NULL) {
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("can not open command: %s", cmd)));
+		return NULL;
+	}
+
+	/* Read the output a line at a time - output it. */
+	while (fgets(line, sizeof(line)-1, fp) != NULL) {
+		if (length(filetype) == 0) {
+			strcpy(filetype, line);
+		} else {
+			strcat(filetype, " ");
+			strcat(filetype, line);
+		}
+	}
+
+	/* close */
+	pclose(fp);
+
+	return filetype;
+}
+
+PG_FUNCTION_INFO_V1(uri_localpath_content_type);
+Datum
+uri_localpath_content_type(PG_FUNCTION_ARGS)
+{
+	Datum		url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		buffer[BUFFER_SIZE];
+	URI		*uri;
+	size_t		r;
+	char *content_type;
+
+	uri = uri_create_str(url, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+	}
+	r = uri_path(uri, buffer, BUFFER_SIZE);
+        uri_destroy(uri);
+
+	content_type = get_filetype(buffer);
+
+	PG_RETURN_TEXT_P(cstring_to_text(content_type));
+
+}
 
 /*
  ereport(LOG, (errmsg("Some error msg: %s", err)));
