@@ -55,6 +55,14 @@ uri_get_str(uri) return uri as text
 uri_is_absolute(uri) return true if uri is absolute
 uri_is_absolute_path(uri) return true if uri path is absolute
 uri_localpath_exists(uri) return true if uri exists as a local path.
+uri_remotepath_exists(uri) return true if uri exists as a remote url.
+uri_path_exists(uri) return true if uri exists as a local or remote url.
+uri_localpath_content_type(uri) return the content_type of a local url.
+uri_remotepath_content_type(uri) return the content_type of a remote url.
+uri_path_content_type(uri) return the content_type of the url (local/remote is autodetected)
+uri_localpath_size(uri) return the size of a local url.
+uri_remotepath_size(uri) return the size of a remote url.
+uri_path_size(uri) return the size of the url (local/remote is autodetected)
 
 In all functions URIs are normalised as they are parsed.
 Normalisation is performed according to section 6.2.2 of
@@ -120,6 +128,7 @@ Indexes
 -------
 CREATE INDEX test2_index_uri ON example USING btree(url);
 CREATE INDEX test1_index_uri ON example USING hash(url uri_hash_ops);
+
 
 -- 
 Gilles Darold

@@ -53,7 +53,7 @@ BEGIN
 
 	SELECT uri_get_scheme($1) INTO scheme;
 
-	IF scheme IS NULL OR scheme = 'file' THEN
+	IF scheme = '' OR scheme = 'file' THEN
 		SELECT uri_localpath_exists($1) INTO path_exists;
         ELSE
 		SELECT uri_remotepath_exists($1) INTO path_exists;
@@ -72,7 +72,7 @@ BEGIN
 
 	SELECT uri_get_scheme($1) INTO scheme;
 
-	IF scheme IS NULL OR scheme = 'file' THEN
+	IF scheme = '' OR scheme = 'file' THEN
 		SELECT uri_localpath_size($1) INTO filesize;
         ELSE
 		SELECT uri_remotepath_size($1) INTO filesize;
@@ -91,7 +91,7 @@ BEGIN
 
 	SELECT uri_get_scheme($1) INTO scheme;
 
-	IF scheme IS NULL OR scheme = 'file' THEN
+	IF scheme = '' OR scheme = 'file' THEN
 		SELECT uri_localpath_content_type($1) INTO ctype;
         ELSE
 		SELECT uri_remotepath_content_type($1) INTO ctype;

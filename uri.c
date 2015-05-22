@@ -888,6 +888,7 @@ get_filetype(char *filename)
 	char filetype[LBUFSIZ];
 	char line[BUFFER_SIZE];
 	char cmd[BUFFER_SIZE];
+	int i = 0;
 
 	strcpy(cmd, "/usr/bin/file -b ");
 	strcat(cmd, filename);
@@ -900,12 +901,13 @@ get_filetype(char *filename)
 
 	/* Read the output a line at a time - output it. */
 	while (fgets(line, sizeof(line)-1, fp) != NULL) {
-		if (length(filetype) == 0) {
+		if (i == 0) {
 			strcpy(filetype, line);
 		} else {
 			strcat(filetype, " ");
 			strcat(filetype, line);
 		}
+		i++;
 	}
 
 	/* close */
@@ -922,7 +924,6 @@ uri_localpath_content_type(PG_FUNCTION_ARGS)
 	char		buffer[BUFFER_SIZE];
 	URI		*uri;
 	size_t		r;
-	char *content_type;
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -933,9 +934,7 @@ uri_localpath_content_type(PG_FUNCTION_ARGS)
 	r = uri_path(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
 
-	content_type = get_filetype(buffer);
-
-	PG_RETURN_TEXT_P(cstring_to_text(content_type));
+	PG_RETURN_TEXT_P(cstring_to_text(get_filetype(buffer)));
 
 }
 
