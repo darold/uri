@@ -1,7 +1,7 @@
 /* *
  * Uri is an extention to store wellformed URI and retrieve URL informations
  * Author: Gilles Darold (gilles@darold.net)
- * Copyright (c) 2015 Dalibo - All rights reserved.
+ * Copyright (c) 2015-2016 Gilles Darold - All rights reserved.
  * */
 
 /* *
@@ -724,9 +724,17 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 
 	res = curl_easy_perform (eh);
 	if (res != CURLE_OK) {
+		/* can not establish a connection */
 		exists = false;
 	} else {
-		exists = true;
+		long http_code = 0;
+		res = curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
+		if (http_code >= 400) {
+			ereport(ERROR, (errmsg("Can not access to remote object, HTTP code returned: %d.", http_code)));
+			exists = false;
+		} else {
+			exists = true;
+		}
 	}
 	curl_global_cleanup ();
 
@@ -796,8 +804,16 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 
 	res = curl_easy_perform (eh);
 	if (res == CURLE_OK) {
+		long http_code = 0;
+		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
+		if (http_code >= 400) {
+			ereport(ERROR, (errmsg("Can not get remote object size, HTTP code returned: %d.", http_code)));
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
+		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
 		if ((res != CURLE_OK) || (filesize < 0.0)) {
+			ereport(ERROR, (errmsg("Can not get remote object size, reason: %s.", curl_easy_strerror(res))));
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}
@@ -869,8 +885,16 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 
 	res = curl_easy_perform (eh);
 	if (res == CURLE_OK) {
+		long http_code = 0;
+		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
+		if (http_code >= 400) {
+			ereport(ERROR, (errmsg("Can not get remote object content-type, HTTP code returned: %d.", http_code)));
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
+		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_TYPE, &content_type);
 		if ((res != CURLE_OK) || (content_type == NULL)) {
+			ereport(ERROR, (errmsg("Can not get remote object content-type, reason: %s.", curl_easy_strerror(res))));
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}

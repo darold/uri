@@ -4,7 +4,10 @@ This PostgreSQL extension implements a uri data type.
 
 uri is a extension to add uri data type for postgresql,
 it allows to insert data in uri format and provide all
-functions to extract uri parts and compare uris.
+functions to extract uri parts, validate and compare uris.
+Some functions are provided to check if an uri exists,
+check size and content-type of remote uri (using libcurl)
+and local uri.
 
 It has the following operators =, <>, <, <=, >, >=, @>
 and <@.
