@@ -14,6 +14,7 @@ and <@.
 
 uri columns can be indexed using btree and hash indexes.
 
+This project is sponsored by [Dalibo](http://dalibo.com).
 
 Building
 --------
