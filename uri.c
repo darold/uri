@@ -504,7 +504,7 @@ uri_localpath_exists(PG_FUNCTION_ARGS)
 	r = uri_path(uri, localpath, MAXPGPATH);
         uri_destroy(uri);
 
-        /* Does the corresponding local file exists? */
+        /* Does the corresponding local file exists as a regular file? */
         if (lstat(localpath, &statbuf) < 0)
         {
                 if (errno != ENOENT)
@@ -512,7 +512,17 @@ uri_localpath_exists(PG_FUNCTION_ARGS)
                 exists = false;
         }
         else
-                exists = true;
+	{
+		/* check if it is a symlink and return false in this case */
+		switch(statbuf.st_mode & S_IFMT) {
+		    case S_IFLNK:
+			exists = false;
+			break;
+		    case S_IFREG:
+			exists = true;
+			break;
+		}
+	}
 
 	PG_RETURN_BOOL(exists);
 
@@ -657,6 +667,16 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 			ereport(FATAL, (errmsg("could not stat file \"%s\": %s", localpath, strerror(errno))));
 		PG_RETURN_NULL();
         }
+	else
+	{
+		/* check if it is a symlink and return NULL in this case */
+		switch(statbuf.st_mode & S_IFMT) {
+		    case S_IFLNK:
+			ereport(ERROR, (errmsg("could not get size of a symlink \"%s\", not authorized", localpath)));
+			PG_RETURN_NULL();
+			break;
+		}
+	}
 
 	PG_RETURN_INT64(statbuf.st_size);
 
