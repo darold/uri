@@ -154,6 +154,6 @@ License
 
 This extension is free software distributed under the PostgreSQL Licence.
 
-	Copyright (c) 2015-2017, Gilles Darold
+	Copyright (c) 2015-2018, Gilles Darold
 
 

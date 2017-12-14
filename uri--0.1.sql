@@ -1,6 +1,6 @@
 -- uri extension for PostgreSQL
 -- Author: Gilles Darold (gilles@darold.net)
--- Copyright (c) 2015-2016 Gilles Darold - All rights reserved.
+-- Copyright (c) 2015-2018 Gilles Darold - All rights reserved.
 
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION uri" to load this file. \quit
