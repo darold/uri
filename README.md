@@ -16,8 +16,8 @@ uri columns can be indexed using btree and hash indexes.
 Building
 --------
 
-Use the following commnand to build and install the extension,
-pg_config must be in found from your PATH environment variable.
+Use the following command to build and install the extension,
+`pg_config` must be in found from your PATH environment variable.
 
 	make USE_PGXS=1
 	sudo make USE_PGXS=1 install
