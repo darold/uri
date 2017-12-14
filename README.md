@@ -26,12 +26,9 @@ in postgresql execute:
 
 	CREATE EXTENSION uri;
 
-You need to install liburi to be able to compile the uri
+You need to install [liburi](https://github.com/nevali/liburi) to be able to compile the uri
 extension. liburi is a simple interface for parsing URIs
 based on [uriparser](http://uriparser.sourceforge.net/).
-The liburi library can be downloaded here:
-
-   https://github.com/nevali/liburi
 
 
 Functions
@@ -44,7 +41,7 @@ per RFC 3986.
 - `uri_get_auth(uri)` returns user part of uri as text
 - `uri_get_host(uri)` returns host part of uri as text
 - `uri_get_port(uri)` returns port part of uri as text
-- `uri_get_portnum(uri)` : returns port part uri as integer
+- `uri_get_portnum(uri)` returns port part uri as integer
 - `uri_get_path(uri)` returns path part of uri as text
 - `uri_get_query(uri)` returns query part of uri as text
 - `uri_get_fragment(uri)` returns fragment part of uri as text
@@ -74,7 +71,7 @@ Other functions:
 - `uri_remotepath_size(uri)` returns the size of a remote url.
 - `uri_path_size(uri)` returns the size of a local path (not symlink) or remote url (local/remote is autodetected).
 
-In all functions URIs are normalised as they are parsed.
+In all functions URIs are normalized as they are parsed.
 Normalisation is performed according to section 6.2.2 of
 RFC3986, and includes adjusting the case of any scheme,
 hostname and percent-encoded characters so as to be
@@ -151,4 +148,12 @@ Authors
 
 Gilles Darold
 gilles@darold.net
+
+License
+-------
+
+This extension is free software distributed under the PostgreSQL Licence.
+
+	Copyright (c) 2015-2017, Gilles Darold
+
 
