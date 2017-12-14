@@ -4,7 +4,7 @@ MODULE_big = uri
 OBJS = uri.o 
 
 EXTENSION = uri
-DATA = uri--0.1.sql
+DATA = uri--1.0.sql
 
 REGRESS = uri
 

@@ -142,6 +142,12 @@ It is possible to create btree or hash indexes on uri data type.
 	CREATE INDEX test2_index_uri ON example USING btree(url uri_btree_ops);
 	CREATE INDEX test1_index_uri ON example USING hash(url uri_hash_ops);
 
+The operator classes `uri_btree_ops` and `uri_hash_ops` can be ommitted as they
+are used as default operator class for the uri data type. With these operator
+classes, all URIs are normalized before they are compared. So if you search records
+where uri `file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf` is found
+if will search for `file:///etc/postgresql/9.6/main/postgresql.conf` into the index
+or the table if the index is not used.
 
 Authors
 -------
