@@ -1,0 +1,409 @@
+DROP DATABASE
+CREATE DATABASE
+You are now connected to database "test_uri" as user "gilles".
+CREATE EXTENSION
+CREATE TABLE
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+CREATE INDEX
+ANALYZE
+ id |                                     url                                     
+----+-----------------------------------------------------------------------------
+  1 | http://pgcluu.darold.net/index.html
+  2 | file:///opt/git/uri/README
+  3 | http://mydomain.com/index%201.html
+  4 | http://username:passwd@mydomain.com/pub/index.php
+  5 | http://192.168.1.1/
+  6 | http://pgcluu.darold.net/example/pgbouncer-dolibarr.html#pgbouncer-duration
+  7 | ftp://ftp.is.co.za/rfc/rfc1808.txt
+  8 | http://www.ietf.org/rfc/rfc2396.txt
+  9 | ldap://[2001:0db8:0000:0000:0000:0000:0000:0007]/c=GB?objectClass?one
+ 10 | mailto:John.Doe@test.com
+ 11 | news:comp.infosystems.www.servers.unix
+ 12 | tel:+1-816-555-1212
+ 13 | telnet://192.0.2.16:80/
+ 14 | urn:oasis:names:specification:docbook:dtd:xml:4.1.2
+ 15 | switch?toggle=1
+ 16 | file:///etc/postgresql/9.6/main/postgresql.conf
+ 17 | file:///etc/postgresql/9.6/main/postgresql.conf
+ 18 | /etc/postgresql/9.6/main/postgresql.conf
+ 19 | https://www.example.com:443/foo/index.html
+ 20 | https://www.example.com/foo/index.html
+ 21 | https://www.example.com/foo/index.html
+ 22 | https://www.example.com/foo/index.html
+(22 rows)
+
+SET
+                                  QUERY PLAN                                  
+------------------------------------------------------------------------------
+ Index Scan using t1_btree_index_uri on t1
+   Index Cond: (url = 'file:///etc/postgresql/9.6/main/postgresql.conf'::uri)
+(2 rows)
+
+SET
+Expanded display is on.
+-[ RECORD 1 ]-------------------------------------------------------------------------
+uri      | http://pgcluu.darold.net/index.html
+scheme   | http
+authen   | 
+host     | pgcluu.darold.net
+port     | 
+port     | 0
+path     | /index.html
+query    | 
+fragment | 
+-[ RECORD 2 ]-------------------------------------------------------------------------
+uri      | file:///opt/git/uri/README
+scheme   | file
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /opt/git/uri/README
+query    | 
+fragment | 
+-[ RECORD 3 ]-------------------------------------------------------------------------
+uri      | http://mydomain.com/index%201.html
+scheme   | http
+authen   | 
+host     | mydomain.com
+port     | 
+port     | 0
+path     | /index%201.html
+query    | 
+fragment | 
+-[ RECORD 4 ]-------------------------------------------------------------------------
+uri      | http://username:passwd@mydomain.com/pub/index.php
+scheme   | http
+authen   | username:passwd
+host     | mydomain.com
+port     | 
+port     | 0
+path     | /pub/index.php
+query    | 
+fragment | 
+-[ RECORD 5 ]-------------------------------------------------------------------------
+uri      | http://192.168.1.1/
+scheme   | http
+authen   | 
+host     | 192.168.1.1
+port     | 
+port     | 0
+path     | /
+query    | 
+fragment | 
+-[ RECORD 6 ]-------------------------------------------------------------------------
+uri      | http://pgcluu.darold.net/example/pgbouncer-dolibarr.html#pgbouncer-duration
+scheme   | http
+authen   | 
+host     | pgcluu.darold.net
+port     | 
+port     | 0
+path     | /example/pgbouncer-dolibarr.html
+query    | 
+fragment | pgbouncer-duration
+-[ RECORD 7 ]-------------------------------------------------------------------------
+uri      | ftp://ftp.is.co.za/rfc/rfc1808.txt
+scheme   | ftp
+authen   | 
+host     | ftp.is.co.za
+port     | 
+port     | 0
+path     | /rfc/rfc1808.txt
+query    | 
+fragment | 
+-[ RECORD 8 ]-------------------------------------------------------------------------
+uri      | http://www.ietf.org/rfc/rfc2396.txt
+scheme   | http
+authen   | 
+host     | www.ietf.org
+port     | 
+port     | 0
+path     | /rfc/rfc2396.txt
+query    | 
+fragment | 
+-[ RECORD 9 ]-------------------------------------------------------------------------
+uri      | ldap://[2001:0db8:0000:0000:0000:0000:0000:0007]/c=GB?objectClass?one
+scheme   | ldap
+authen   | 
+host     | 2001:0db8:0000:0000:0000:0000:0000:0007
+port     | 
+port     | 0
+path     | /c=GB
+query    | objectClass?one
+fragment | 
+-[ RECORD 10 ]------------------------------------------------------------------------
+uri      | mailto:John.Doe@test.com
+scheme   | mailto
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /John.Doe@test.com
+query    | 
+fragment | 
+-[ RECORD 11 ]------------------------------------------------------------------------
+uri      | news:comp.infosystems.www.servers.unix
+scheme   | news
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /comp.infosystems.www.servers.unix
+query    | 
+fragment | 
+-[ RECORD 12 ]------------------------------------------------------------------------
+uri      | tel:+1-816-555-1212
+scheme   | tel
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /+1-816-555-1212
+query    | 
+fragment | 
+-[ RECORD 13 ]------------------------------------------------------------------------
+uri      | telnet://192.0.2.16:80/
+scheme   | telnet
+authen   | 
+host     | 192.0.2.16
+port     | 80
+port     | 80
+path     | /
+query    | 
+fragment | 
+-[ RECORD 14 ]------------------------------------------------------------------------
+uri      | urn:oasis:names:specification:docbook:dtd:xml:4.1.2
+scheme   | urn
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /oasis:names:specification:docbook:dtd:xml:4.1.2
+query    | 
+fragment | 
+-[ RECORD 15 ]------------------------------------------------------------------------
+uri      | switch?toggle=1
+scheme   | 
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | switch
+query    | toggle=1
+fragment | 
+-[ RECORD 16 ]------------------------------------------------------------------------
+uri      | file:///etc/postgresql/9.6/main/postgresql.conf
+scheme   | file
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /etc/postgresql/9.6/main/postgresql.conf
+query    | 
+fragment | 
+-[ RECORD 17 ]------------------------------------------------------------------------
+uri      | file:///etc/postgresql/9.6/main/postgresql.conf
+scheme   | file
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /etc/postgresql/9.6/main/postgresql.conf
+query    | 
+fragment | 
+-[ RECORD 18 ]------------------------------------------------------------------------
+uri      | /etc/postgresql/9.6/main/postgresql.conf
+scheme   | 
+authen   | 
+host     | 
+port     | 
+port     | 0
+path     | /etc/postgresql/9.6/main/postgresql.conf
+query    | 
+fragment | 
+-[ RECORD 19 ]------------------------------------------------------------------------
+uri      | https://www.example.com:443/foo/index.html
+scheme   | https
+authen   | 
+host     | www.example.com
+port     | 443
+port     | 443
+path     | /foo/index.html
+query    | 
+fragment | 
+-[ RECORD 20 ]------------------------------------------------------------------------
+uri      | https://www.example.com/foo/index.html
+scheme   | https
+authen   | 
+host     | www.example.com
+port     | 
+port     | 0
+path     | /foo/index.html
+query    | 
+fragment | 
+-[ RECORD 21 ]------------------------------------------------------------------------
+uri      | https://www.example.com/foo/index.html
+scheme   | https
+authen   | 
+host     | www.example.com
+port     | 
+port     | 0
+path     | /foo/index.html
+query    | 
+fragment | 
+-[ RECORD 22 ]------------------------------------------------------------------------
+uri      | https://www.example.com/foo/index.html
+scheme   | https
+authen   | 
+host     | www.example.com
+port     | 
+port     | 0
+path     | /foo/index.html
+query    | 
+fragment | 
+
+-[ RECORD 1 ]-------+------------------------------
+string              | http://192.168.1.1/index.html
+abs_true            | t
+abs_false           | f
+abs_path_true       | t
+abs_path_false      | f
+local_exists_true   | t
+local_exists_false  | f
+remotepath_true     | t
+remotepath_false    | f
+rpath_exists_true   | t
+rpath_exists_false  | f
+lpath_exists_true   | t
+lpath_exists_false  | f
+local_content_type  | ASCII text
+remote_content_type | text/html
+lpath_content_type  | ASCII text
+rpath_content_type  | text/html
+local_size          | 820
+remote_size         | 5098
+lpath_size          | 820
+rpath_size          | 5098
+
+Expanded display is off.
+                                     url                                     
+-----------------------------------------------------------------------------
+ /etc/postgresql/9.6/main/postgresql.conf
+ file:///etc/postgresql/9.6/main/postgresql.conf
+ file:///opt/git/uri/README
+ ftp://ftp.is.co.za/rfc/rfc1808.txt
+ http://192.168.1.1/
+ http://mydomain.com/index%201.html
+ http://pgcluu.darold.net/example/pgbouncer-dolibarr.html#pgbouncer-duration
+ http://pgcluu.darold.net/index.html
+ http://username:passwd@mydomain.com/pub/index.php
+ http://www.ietf.org/rfc/rfc2396.txt
+ https://www.example.com/foo/index.html
+ https://www.example.com:443/foo/index.html
+ ldap://[2001:0db8:0000:0000:0000:0000:0000:0007]/c=GB?objectClass?one
+ mailto:John.Doe@test.com
+ news:comp.infosystems.www.servers.unix
+ switch?toggle=1
+ tel:+1-816-555-1212
+ telnet://192.0.2.16:80/
+ urn:oasis:names:specification:docbook:dtd:xml:4.1.2
+(19 rows)
+
+SET
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Gather
+   Workers Planned: 1
+   Single Copy: true
+   ->  Unique
+         ->  Index Only Scan using t1_btree_index_uri on t1
+(5 rows)
+
+SET
+CREATE TABLE
+INSERT 0 1
+ANALYZE
+SET
+SET
+ id |         url         |  lbl  |         url         
+----+---------------------+-------+---------------------
+  5 | http://192.168.1.1/ | mybox | http://192.168.1.1/
+(1 row)
+
+           QUERY PLAN           
+--------------------------------
+ Hash Join
+   Hash Cond: (t1.url = t2.url)
+   ->  Seq Scan on t1
+         Filter: (id = 5)
+   ->  Hash
+         ->  Seq Scan on t2
+(6 rows)
+
+SET
+SET
+DROP INDEX
+psql:test/test.sql:102: WARNING:  hash indexes are not WAL-logged and their use is discouraged
+CREATE INDEX
+ANALYZE
+SET
+SET
+SET
+ id |         url         |  lbl  |         url         
+----+---------------------+-------+---------------------
+  5 | http://192.168.1.1/ | mybox | http://192.168.1.1/
+(1 row)
+
+                   QUERY PLAN                   
+------------------------------------------------
+ Nested Loop
+   ->  Seq Scan on t2
+   ->  Index Scan using t1_hash_index_uri on t1
+         Index Cond: (url = t2.url)
+         Filter: (id = 5)
+(5 rows)
+
+SET
+SET
+SET
+ id |         url         
+----+---------------------
+  5 | http://192.168.1.1/
+(1 row)
+
+ id |         url         
+----+---------------------
+  5 | http://192.168.1.1/
+(1 row)
+
+ id |         url         
+----+---------------------
+  5 | http://192.168.1.1/
+(1 row)
+
+ id |         url         
+----+---------------------
+  5 | http://192.168.1.1/
+(1 row)
+
