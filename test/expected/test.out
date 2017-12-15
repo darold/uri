@@ -300,11 +300,11 @@ lpath_exists_false  | f
 local_content_type  | text/plain; charset=us-ascii
 remote_content_type | text/html
 lpath_content_type  | text/plain; charset=us-ascii
-rpath_content_type  | text/html
+rpath_content_type  | image/png
 local_size          | 820
 remote_size         | 5098
 lpath_size          | 820
-rpath_size          | 5098
+rpath_size          | 101596
 
 Expanded display is off.
                                      url                                     
