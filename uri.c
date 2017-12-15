@@ -83,7 +83,6 @@ uri_in(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_str(h_uri, buffer, BUFFER_SIZE);
         uri_destroy(h_uri);
@@ -144,7 +143,6 @@ uri_get_scheme(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_scheme(uri, buffer, 8);
         uri_destroy(uri);
@@ -167,7 +165,6 @@ uri_get_auth(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_auth(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -190,7 +187,6 @@ uri_get_host(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_host(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -213,7 +209,6 @@ uri_get_port(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_port(uri, buffer, 6);
         uri_destroy(uri);
@@ -235,7 +230,6 @@ uri_get_portnum(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_portnum(uri);
         uri_destroy(uri);
@@ -258,7 +252,6 @@ uri_get_path(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_path(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -281,13 +274,11 @@ uri_get_query(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_query(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
-
 }
 
 PG_FUNCTION_INFO_V1(uri_get_fragment);
@@ -304,7 +295,6 @@ uri_get_fragment(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_fragment(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -326,7 +316,6 @@ uri_is_absolute(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_absolute(uri);
         uri_destroy(uri);
@@ -348,7 +337,6 @@ uri_is_absolute_path(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_absolute_path(uri);
         uri_destroy(uri);
@@ -371,7 +359,6 @@ uri_get_str(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-		PG_RETURN_NULL();
 	}
 	r = uri_str(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
@@ -667,7 +654,6 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url1)));
-		PG_RETURN_NULL();
 	}
 	r = uri_path(uri, localpath, MAXPGPATH);
         uri_destroy(uri);
@@ -685,7 +671,6 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 		switch(statbuf.st_mode & S_IFMT) {
 		    case S_IFLNK:
 			ereport(ERROR, (errmsg("could not get size of a symlink \"%s\", not authorized", localpath)));
-			PG_RETURN_NULL();
 			break;
 		}
 	}
@@ -723,8 +708,6 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 	if ((eh = curl_easy_init ()) == NULL)
 	{
 		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
-		curl_global_cleanup ();
-		PG_RETURN_NULL();
 	}
 	else
 	{
@@ -766,7 +749,6 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 		} else {
 			if (http_code >= 400) {
 				ereport(ERROR, (errmsg("Can not access to remote object, HTTP code returned: %d.", http_code)));
-				exists = false;
 			} else {
 				exists = true;
 			}
@@ -807,8 +789,6 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 	if ((eh = curl_easy_init ()) == NULL)
 	{
 		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
-		curl_global_cleanup ();
-		PG_RETURN_NULL();
 	}
 	else
 	{
@@ -844,8 +824,6 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
 		if (http_code >= 400) {
 			ereport(ERROR, (errmsg("Can not get remote object size, HTTP code returned: %d.", http_code)));
-			curl_global_cleanup ();
-			PG_RETURN_NULL();
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
 		if ((res != CURLE_OK) || (filesize < 0.0)) {
@@ -889,8 +867,6 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 	if ((eh = curl_easy_init ()) == NULL)
 	{
 		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
-		curl_global_cleanup ();
-		PG_RETURN_NULL();
 	}
 	else
 	{
@@ -926,8 +902,6 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
 		if (http_code >= 400) {
 			ereport(ERROR, (errmsg("Can not get remote object content-type, HTTP code returned: %d.", http_code)));
-			curl_global_cleanup ();
-			PG_RETURN_NULL();
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_TYPE, &content_type);
 		if ((res != CURLE_OK) || (content_type == NULL)) {
@@ -957,7 +931,6 @@ get_filetype(char *filename)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("unable to initialize magic library")));
-		return NULL;
 	}
 	/* Loading default magic database */
 	if (magic_load(magic_cookie, NULL) != 0)
@@ -966,7 +939,6 @@ get_filetype(char *filename)
 		magic_close(magic_cookie);
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("cannot load magic database - %s", magic_err)));
-		return NULL;
 	}
 
 	magic_str = magic_file(magic_cookie, filename);
@@ -1002,6 +974,3 @@ uri_localpath_content_type(PG_FUNCTION_ARGS)
 
 }
 
-/*
- ereport(LOG, (errmsg("Some error msg: %s", err)));
-*/
