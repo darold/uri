@@ -12,7 +12,7 @@ REGRESS = uri
 LIBURI_CONFIG = /usr/local/liburi/bin/liburi-config
 LIBCURL_CONFIG = curl-config
 PG_CPPFLAGS := $(shell $(LIBURI_CONFIG) --cflags)
-SHLIB_LINK := $(shell $(LIBURI_CONFIG) --libs) $(shell $(LIBCURL_CONFIG) --libs)
+SHLIB_LINK := $(shell $(LIBURI_CONFIG) --libs) $(shell $(LIBCURL_CONFIG) --libs) -lmagic
 
 ifdef USE_PGXS
 PG_CONFIG = pg_config

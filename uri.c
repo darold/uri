@@ -24,6 +24,7 @@
 #include <liburi.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
+#include <magic.h>
 
 #define LBUFSIZ		32768
 #define BUFFER_SIZE 8192
@@ -33,6 +34,7 @@
 typedef struct varlena t_uri;
 int search_str(char src[], char search[]);
 char *get_filetype(char *filename);
+bool is_real_file(char *filename);
 
 
 /*
@@ -486,31 +488,19 @@ uri_compare(PG_FUNCTION_ARGS)
 
 }
 
-PG_FUNCTION_INFO_V1(uri_localpath_exists);
-Datum
-uri_localpath_exists(PG_FUNCTION_ARGS)
+bool
+is_real_file(char *filename)
 {
-	Datum		url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char		localpath[MAXPGPATH];
-	URI		*uri;
 	bool		exists;
 	struct stat	statbuf;
-	size_t		r;
-
-	uri = uri_create_str(url1, NULL);
-	if (!uri)
-	{
-		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("failed to parse URI '%s'", url1)));
-	}
-	r = uri_path(uri, localpath, MAXPGPATH);
-        uri_destroy(uri);
 
         /* Does the corresponding local file exists as a regular file? */
-        if (lstat(localpath, &statbuf) < 0)
+        if (lstat(filename, &statbuf) < 0)
         {
                 if (errno != ENOENT)
-			ereport(FATAL, (errmsg("could not stat file \"%s\": %s", localpath, strerror(errno))));
+			ereport(ERROR, (
+				errmsg("could not stat file \"%s\": %s",
+						filename, strerror(errno))));
                 exists = false;
         }
         else
@@ -526,8 +516,29 @@ uri_localpath_exists(PG_FUNCTION_ARGS)
 		}
 	}
 
-	PG_RETURN_BOOL(exists);
+	return exists;
+}
 
+PG_FUNCTION_INFO_V1(uri_localpath_exists);
+Datum
+uri_localpath_exists(PG_FUNCTION_ARGS)
+{
+	Datum		url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		localpath[MAXPGPATH];
+	URI		*uri;
+	struct stat	statbuf;
+	size_t		r;
+
+	uri = uri_create_str(url1, NULL);
+	if (!uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url1)));
+	}
+	r = uri_path(uri, localpath, MAXPGPATH);
+        uri_destroy(uri);
+
+	PG_RETURN_BOOL(is_real_file(localpath));
 }
 
 /*
@@ -648,7 +659,6 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 	Datum		url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
 	char		localpath[MAXPGPATH];
 	URI		*uri;
-	bool		exists;
 	struct stat	statbuf;
 	size_t		r;
 
@@ -936,39 +946,34 @@ char *
 get_filetype(char *filename)
 {
 
-	FILE *fp;
-	char filetype[LBUFSIZ];
-	char line[BUFFER_SIZE];
-	char cmd[BUFFER_SIZE];
-	int i = 0;
+	const char *magic_str;
+	const char *magic_err;
+	magic_t    magic_cookie;
+	char       mime[BUFFER_SIZE];
 
-	strcpy(cmd, "/usr/bin/file -b ");
-	strncat(cmd, filename, BUFFER_SIZE-25);
-	fp = popen(cmd, "r");
-	if (fp == NULL) {
+	/* Initialize magic library */
+	magic_cookie = magic_open(MAGIC_MIME);
+	if (magic_cookie == NULL)
+	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("can not open command: %s", cmd)));
+			 errmsg("unable to initialize magic library")));
+		return NULL;
+	}
+	/* Loading default magic database */
+	if (magic_load(magic_cookie, NULL) != 0)
+	{
+		magic_err = magic_error(magic_cookie);
+		magic_close(magic_cookie);
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("cannot load magic database - %s", magic_err)));
 		return NULL;
 	}
 
-	/* Read the output a line at a time - output it. */
-	while (fgets(line, sizeof(line)-1, fp) != NULL) {
-		if (i == 0) {
-			strncpy(filetype, line, BUFFER_SIZE);
-		} else {
-			strcat(filetype, " ");
-			strncat(filetype, line, BUFFER_SIZE);
-		}
-		i = strlen(filetype);
-	}
-	if (i > 0) {
-		filetype[i-1] = '\0';
-	}
+	magic_str = magic_file(magic_cookie, filename);
+	strncpy(mime, magic_str, BUFFER_SIZE);
+	magic_close(magic_cookie);
 
-	/* close */
-	pclose(fp);
-
-	return filetype;
+	return mime;
 }
 
 PG_FUNCTION_INFO_V1(uri_localpath_content_type);
@@ -988,6 +993,10 @@ uri_localpath_content_type(PG_FUNCTION_ARGS)
 	}
 	r = uri_path(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
+
+
+	if (!is_real_file(buffer))
+		PG_RETURN_NULL();
 
 	PG_RETURN_TEXT_P(cstring_to_text(get_filetype(buffer)));
 

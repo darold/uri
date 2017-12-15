@@ -13,6 +13,19 @@ and `<@`.
 
 uri columns can be indexed using btree and hash indexes.
 
+
+Requirement
+-----------
+
+You need to install [liburi](https://github.com/nevali/liburi) to be able to compile the uri
+extension. liburi is a simple interface for parsing URIs based on [uriparser](http://uriparser.sourceforge.net/).
+uriparser can be found as binary package on almost all Linux or BSD like distributions.
+
+Extraction of mime type from a local file is done with the use of [libmagic](http://www.darwinsys.com/file/). libmagic
+is found with all Linux or BSD like distributions and comes with the `file` command, you will be able to install the
+development binary package using `apt-get install libmagic-dev` or `yum install file-devel` for example.
+
+
 Building
 --------
 
@@ -22,13 +35,9 @@ Use the following command to build and install the extension,
 	make USE_PGXS=1
 	sudo make USE_PGXS=1 install
 
-in postgresql execute:
+in psql execute:
 
 	CREATE EXTENSION uri;
-
-You need to install [liburi](https://github.com/nevali/liburi) to be able to compile the uri
-extension. liburi is a simple interface for parsing URIs
-based on [uriparser](http://uriparser.sourceforge.net/).
 
 
 Functions
@@ -64,7 +73,7 @@ Other functions:
 - `uri_localpath_exists(uri)` returns true if uri exists as a regular local path (not symlink).
 - `uri_remotepath_exists(uri)` returns true if uri exists as a remote url.
 - `uri_path_exists(uri)` returns true if uri exists as a local regular path (not symlink) or remote url (local/remote is autodetected).
-- `uri_localpath_content_type(uri)` returns the content_type of a local url returned by the system command `/usr/bin/file`.
+- `uri_localpath_content_type(uri)` returns the content_type of a local file using libmagic.
 - `uri_remotepath_content_type(uri)` returns the content_type of a remote url.
 - `uri_path_content_type(uri)` returns the content_type of the url (local/remote is autodetected).
 - `uri_localpath_size(uri)` returns the size of a local regular file (not symlink).
