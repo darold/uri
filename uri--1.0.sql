@@ -118,6 +118,7 @@ CREATE OPERATOR = (
 	procedure = uri_is_equal,
 	RESTRICT = eqsel,
 	JOIN = eqjoinsel,
+	COMMUTATOR = =,
 	NEGATOR = <>,
 	HASHES,
 	MERGES
@@ -128,7 +129,8 @@ CREATE OPERATOR <> (
 	rightarg = uri,
 	procedure = uri_is_notequal,
 	RESTRICT = neqsel,
-	RESTRICT = neqsel,
+	JOIN = neqjoinsel,
+	COMMUTATOR = <>,
 	NEGATOR = =
 );
 
