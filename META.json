@@ -12,7 +12,7 @@
     "uri": {
        "abstract": "URI data type for Postgresql",
        "file": "uri--1.0.0.sql",
-       "docfile": "README",
+       "docfile": "README.md",
        "version": "1.0.0"
     }
  },
@@ -26,6 +26,7 @@
       "type": "git"
     }
  },
+ "generated_by": "Gilles Darold",
  "tags": [
     "uri", "datatype", "type"
  ]
