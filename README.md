@@ -64,23 +64,38 @@ Other functions:
 - `uri_localpath_exists(uri)` returns true if uri exists as a regular local path (not symlink).
 - `uri_remotepath_exists(uri)` returns true if uri exists as a remote url.
 - `uri_path_exists(uri)` returns true if uri exists as a local regular path (not symlink) or remote url (local/remote is autodetected).
-- `uri_localpath_content_type(uri)` returns the content_type of a local url.
+- `uri_localpath_content_type(uri)` returns the content_type of a local url returned by the system command `/usr/bin/file`.
 - `uri_remotepath_content_type(uri)` returns the content_type of a remote url.
 - `uri_path_content_type(uri)` returns the content_type of the url (local/remote is autodetected).
 - `uri_localpath_size(uri)` returns the size of a local regular file (not symlink).
 - `uri_remotepath_size(uri)` returns the size of a remote url.
 - `uri_path_size(uri)` returns the size of a local path (not symlink) or remote url (local/remote is autodetected).
 
-In all functions URIs are normalized as they are parsed.
-Normalisation is performed according to section 6.2.2 of
-RFC3986, and includes adjusting the case of any scheme,
-hostname and percent-encoded characters so as to be
-consistent, as well as removing redundant components from
-the path (for example, a path of /a/b/c/../d/../../e will
-be normalised to /a/e). 
+Normalization
+------------
 
+In all functions URIs are normalized as they are parsed.  Normalisation is performed according to section 6.2.2 of
+RFC3986, and includes adjusting the case of any scheme, hostname and percent-encoded characters so as to be
+consistent, as well as removing redundant components from the path (for example, a path of `/a/b/c/../d/../../e` will
+be normalised to `/a/e`).
 
-operators
+This also mean that this extension stores normalized URI and not the original string. For example:
+
+	test_uri=# INSERT INTO t1 (url) VALUES ('file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf');
+	INSERT  0 1
+	test_uri=# SELECT * FROM t1 WHERE url = 'file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf';
+	 id |                       url                       
+	----+-------------------------------------------------
+	  1 | file:///etc/postgresql/9.6/main/postgresql.conf
+	test_uri=# SELECT * FROM t1 WHERE url = 'file:///etc/postgresql/9.6/main/postgresql.conf';
+	 id |                       url                       
+	----+-------------------------------------------------
+	  1 | file:///etc/postgresql/9.6/main/postgresql.conf
+
+If you want to retrieve the original value `file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf`
+this will not be possible anymore.
+
+Operators
 ---------
 
 - `=`   check that 2 uri data are equals
@@ -142,7 +157,7 @@ It is possible to create btree or hash indexes on uri data type.
 	CREATE INDEX test2_index_uri ON example USING btree(url uri_btree_ops);
 	CREATE INDEX test1_index_uri ON example USING hash(url uri_hash_ops);
 
-The operator classes `uri_btree_ops` and `uri_hash_ops` can be ommitted as they
+The operator classes `uri_btree_ops` and `uri_hash_ops` can be omitted as they
 are used as default operator class for the uri data type. With these operator
 classes, all URIs are normalized before they are compared. So if you search records
 where uri `file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf` is found
