@@ -839,7 +839,8 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
 		if ((res != CURLE_OK) || (filesize < 0.0)) {
-			ereport(ERROR, (errmsg("Can not get remote object size, reason: %s.", curl_easy_strerror(res))));
+			if (res != CURLE_OK)
+				ereport(WARNING, (errmsg("Can not get remote object size, reason: %s.", curl_easy_strerror(res))));
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}
@@ -920,7 +921,8 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_TYPE, &content_type);
 		if ((res != CURLE_OK) || (content_type == NULL)) {
-			ereport(ERROR, (errmsg("Can not get remote object content-type, reason: %s.", curl_easy_strerror(res))));
+			if (res != CURLE_OK)
+				ereport(WARNING, (errmsg("Can not get remote object content-type, reason: %s.", curl_easy_strerror(res))));
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}
