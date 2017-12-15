@@ -15,6 +15,7 @@
  * */
 
 #include "postgres.h"
+
 #include "fmgr.h"
 #include "libpq/pqformat.h"
 #include "string.h"
@@ -32,6 +33,7 @@
 typedef struct varlena t_uri;
 int search_str(char src[], char search[]);
 char *get_filetype(char *filename);
+
 
 /*
  * Declaration of the URI data type function
@@ -446,7 +448,7 @@ uri_hash(PG_FUNCTION_ARGS)
 {
 	Datum	url = TextDatumGetCString(PG_GETARG_DATUM(0));
 
-        PG_RETURN_INT32(hash_any(url, sizeof(url)));
+        PG_RETURN_INT32(DatumGetInt32(hash_any(url, sizeof(url))));
 }
 
 PG_FUNCTION_INFO_V1(uri_compare);
@@ -749,11 +751,15 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 	} else {
 		long http_code = 0;
 		res = curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
-		if (http_code >= 400) {
-			ereport(ERROR, (errmsg("Can not access to remote object, HTTP code returned: %d.", http_code)));
+		if (http_code == 404) {
 			exists = false;
 		} else {
-			exists = true;
+			if (http_code >= 400) {
+				ereport(ERROR, (errmsg("Can not access to remote object, HTTP code returned: %d.", http_code)));
+				exists = false;
+			} else {
+				exists = true;
+			}
 		}
 	}
 	curl_global_cleanup ();
@@ -935,7 +941,7 @@ get_filetype(char *filename)
 	int i = 0;
 
 	strcpy(cmd, "/usr/bin/file -b ");
-	strcat(cmd, filename);
+	strncat(cmd, filename, BUFFER_SIZE-25);
 	fp = popen(cmd, "r");
 	if (fp == NULL) {
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
@@ -946,12 +952,15 @@ get_filetype(char *filename)
 	/* Read the output a line at a time - output it. */
 	while (fgets(line, sizeof(line)-1, fp) != NULL) {
 		if (i == 0) {
-			strcpy(filetype, line);
+			strncpy(filetype, line, BUFFER_SIZE);
 		} else {
 			strcat(filetype, " ");
-			strcat(filetype, line);
+			strncat(filetype, line, BUFFER_SIZE);
 		}
-		i++;
+		i = strlen(filetype);
+	}
+	if (i > 0) {
+		filetype[i-1] = '\0';
 	}
 
 	/* close */
