@@ -493,7 +493,8 @@ is_real_file(char *filename)
         else
 	{
 		/* check if it is a symlink and return false in this case */
-		switch(statbuf.st_mode & S_IFMT) {
+		switch(statbuf.st_mode & S_IFMT)
+		{
 		    case S_IFLNK:
 			exists = false;
 			break;
@@ -539,8 +540,8 @@ search_str(char src[], char search[])
 	int i, j, first;
 	i = 0, j = 0;
 
-	while (src[i] != '\0') {
-
+	while (src[i] != '\0')
+	{
 		while (src[i] != search[0] && src[i] != '\0')
 			i++;
 
@@ -549,7 +550,8 @@ search_str(char src[], char search[])
 
 		first= i;
 
-		while (src[i] == search[j] && src[i] != '\0' && search[j] != '\0') {
+		while (src[i] == search[j] && src[i] != '\0' && search[j] != '\0')
+		{
 			i++;
 			j++;
 		}
@@ -668,7 +670,8 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 	else
 	{
 		/* check if it is a symlink and return NULL in this case */
-		switch(statbuf.st_mode & S_IFMT) {
+		switch(statbuf.st_mode & S_IFMT)
+		{
 		    case S_IFLNK:
 			ereport(ERROR, (errmsg("could not get size of a symlink \"%s\", not authorized", localpath)));
 			break;
@@ -738,18 +741,27 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 	}
 
 	res = curl_easy_perform (eh);
-	if (res != CURLE_OK) {
+	if (res != CURLE_OK)
+	{
 		/* can not establish a connection */
 		exists = false;
-	} else {
+	}
+	else
+	{
 		long http_code = 0;
 		res = curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
-		if (http_code == 404) {
+		if (http_code == 404)
+		{
 			exists = false;
-		} else {
-			if (http_code >= 400) {
+		}
+		else
+		{
+			if (http_code >= 400)
+			{
 				ereport(ERROR, (errmsg("Can not access to remote object, HTTP code returned: %d.", http_code)));
-			} else {
+			}
+			else
+			{
 				exists = true;
 			}
 		}
@@ -819,14 +831,17 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 	}
 
 	res = curl_easy_perform (eh);
-	if (res == CURLE_OK) {
+	if (res == CURLE_OK)
+	{
 		long http_code = 0;
 		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
-		if (http_code >= 400) {
+		if (http_code >= 400)
+		{
 			ereport(ERROR, (errmsg("Can not get remote object size, HTTP code returned: %d.", http_code)));
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
-		if ((res != CURLE_OK) || (filesize < 0.0)) {
+		if ((res != CURLE_OK) || (filesize < 0.0))
+		{
 			if (res != CURLE_OK)
 				ereport(WARNING, (errmsg("Can not get remote object size, reason: %s.", curl_easy_strerror(res))));
 			curl_global_cleanup ();
@@ -897,14 +912,17 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 	}
 
 	res = curl_easy_perform (eh);
-	if (res == CURLE_OK) {
+	if (res == CURLE_OK)
+	{
 		long http_code = 0;
 		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
-		if (http_code >= 400) {
+		if (http_code >= 400)
+		{
 			ereport(ERROR, (errmsg("Can not get remote object content-type, HTTP code returned: %d.", http_code)));
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_TYPE, &content_type);
-		if ((res != CURLE_OK) || (content_type == NULL)) {
+		if ((res != CURLE_OK) || (content_type == NULL))
+		{
 			if (res != CURLE_OK)
 				ereport(WARNING, (errmsg("Can not get remote object content-type, reason: %s.", curl_easy_strerror(res))));
 			curl_global_cleanup ();
