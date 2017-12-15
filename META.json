@@ -1,19 +1,19 @@
 {
  "name": "uri",
  "abstract": URI data type for Postgresql ",
- "version": "1.0",
+ "version": "1.0.0",
  "maintainer": "Gilles Darold <gilles@darold.net>",
  "license": "postgresql",
  "meta-spec": {
-    "version": "1.0",
+    "version": "1.0.0",
     "url": "http://pgxn.org/meta/spec.txt"
  },
  "provides": {
     "uri": {
        "abstract": "URI data type for Postgresql",
-       "file": "uri--1.0.sql",
+       "file": "uri--1.0.0.sql",
        "docfile": "README",
-       "version": "1.0"
+       "version": "1.0.0"
     }
  },
  "resources": {
