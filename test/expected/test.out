@@ -297,9 +297,9 @@ rpath_exists_true   | t
 rpath_exists_false  | f
 lpath_exists_true   | t
 lpath_exists_false  | f
-local_content_type  | ASCII text
+local_content_type  | text/plain; charset=us-ascii
 remote_content_type | text/html
-lpath_content_type  | ASCII text
+lpath_content_type  | text/plain; charset=us-ascii
 rpath_content_type  | text/html
 local_size          | 820
 remote_size         | 5098
@@ -364,7 +364,6 @@ SET
 SET
 SET
 DROP INDEX
-psql:test/test.sql:102: WARNING:  hash indexes are not WAL-logged and their use is discouraged
 CREATE INDEX
 ANALYZE
 SET
