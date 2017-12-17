@@ -79,6 +79,8 @@ Other functions:
 - `uri_localpath_size(uri)` returns the size of a local regular file (not symlink).
 - `uri_remotepath_size(uri)` returns the size of a remote url.
 - `uri_path_size(uri)` returns the size of a local path (not symlink) or remote url (local/remote is autodetected).
+- `uri_escape(text)` returns the encoded URL of the given string using [curl_easy_escape()](https://curl.haxx.se/libcurl/c/curl_easy_escape.html).
+- `uri_unescape(text)` returns the decoded URL of the given string using [curl_easy_unescape()](https://curl.haxx.se/libcurl/c/curl_easy_unescape.html).
 
 Normalization
 ------------

@@ -72,6 +72,8 @@ Datum		uri_remotepath_exists(PG_FUNCTION_ARGS);
 Datum		uri_remotepath_size(PG_FUNCTION_ARGS);
 Datum		uri_remotepath_content_type(PG_FUNCTION_ARGS);
 Datum		uri_localpath_content_type(PG_FUNCTION_ARGS);
+Datum		uri_escape(PG_FUNCTION_ARGS);
+Datum		uri_unescape(PG_FUNCTION_ARGS);
 
 
 PG_FUNCTION_INFO_V1(uri_in);
@@ -1000,6 +1002,68 @@ uri_localpath_content_type(PG_FUNCTION_ARGS)
 	mime = get_filetype(buffer);
 
 	PG_RETURN_TEXT_P(cstring_to_text(mime));
+
+}
+
+PG_FUNCTION_INFO_V1(uri_escape);
+Datum
+uri_escape(PG_FUNCTION_ARGS)
+{
+	char		*url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	CURL *eh = NULL;        /* libcurl handler */
+	char *escaped;
+
+	/* curl init */
+	curl_global_init (CURL_GLOBAL_ALL);
+	/* get an easy handle */
+	if ((eh = curl_easy_init ()) == NULL)
+	{
+		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+	}
+	else
+	{
+		/* do not install signal  handlers in thread context */
+		curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
+		escaped = curl_easy_escape(eh, url, 0);
+		if (escaped) {
+			curl_global_cleanup ();
+			PG_RETURN_TEXT_P(cstring_to_text(escaped));
+		}
+	}
+	curl_global_cleanup ();
+
+	PG_RETURN_NULL();
+
+}
+
+PG_FUNCTION_INFO_V1(uri_unescape);
+Datum
+uri_unescape(PG_FUNCTION_ARGS)
+{
+	char		*url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	CURL *eh = NULL;        /* libcurl handler */
+	char *unescaped;
+
+	/* curl init */
+	curl_global_init (CURL_GLOBAL_ALL);
+	/* get an easy handle */
+	if ((eh = curl_easy_init ()) == NULL)
+	{
+		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+	}
+	else
+	{
+		/* do not install signal  handlers in thread context */
+		curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
+		unescaped = curl_easy_unescape(eh, url, 0, NULL);
+		if (unescaped) {
+			curl_global_cleanup ();
+			PG_RETURN_TEXT_P(cstring_to_text(unescaped));
+		}
+	}
+	curl_global_cleanup ();
+
+	PG_RETURN_NULL();
 
 }
 
