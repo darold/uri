@@ -116,3 +116,10 @@ SELECT * FROM t1 WHERE '192.168.1.1' <@ url;
 SELECT * FROM t1 WHERE 'http://192.168.1.1/index.html' @> url;
 SELECT * FROM t1 WHERE url <@ 'http://192.168.1.1/index.html';
 
+-- Test URL encoding
+SELECT uri_escape('$ & < > ? ; # : = , " '' ~ + % \r \n');
+SELECT uri_unescape('%24%20%26%20%3C%20%3E%20%3F%20%3B%20%23%20%3A%20%3D%20%2C%20%22%20%27%20~%20%2B%20%25%20%5Cr%20%5Cn');
+SELECT uri_escape(E'Test\nnew line');
+SELECT uri_unescape('Test%0Anew%20line');
+
+

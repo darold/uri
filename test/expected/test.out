@@ -301,9 +301,9 @@ local_content_type  | text/plain; charset=us-ascii
 remote_content_type | text/html
 lpath_content_type  | text/plain; charset=us-ascii
 rpath_content_type  | image/png
-local_size          | 820
+local_size          | 674
 remote_size         | 5098
-lpath_size          | 820
+lpath_size          | 674
 rpath_size          | 101596
 
 Expanded display is off.
@@ -331,14 +331,11 @@ Expanded display is off.
 (19 rows)
 
 SET
-                         QUERY PLAN                         
-------------------------------------------------------------
- Gather
-   Workers Planned: 1
-   Single Copy: true
-   ->  Unique
-         ->  Index Only Scan using t1_btree_index_uri on t1
-(5 rows)
+                      QUERY PLAN                      
+------------------------------------------------------
+ Unique
+   ->  Index Only Scan using t1_btree_index_uri on t1
+(2 rows)
 
 SET
 CREATE TABLE
@@ -404,5 +401,26 @@ SET
  id |         url         
 ----+---------------------
   5 | http://192.168.1.1/
+(1 row)
+
+                                             uri_escape                                              
+-----------------------------------------------------------------------------------------------------
+ %24%20%26%20%3C%20%3E%20%3F%20%3B%20%23%20%3A%20%3D%20%2C%20%22%20%27%20~%20%2B%20%25%20%5Cr%20%5Cn
+(1 row)
+
+            uri_unescape             
+-------------------------------------
+ $ & < > ? ; # : = , " ' ~ + % \r \n
+(1 row)
+
+    uri_escape     
+-------------------
+ Test%0Anew%20line
+(1 row)
+
+ uri_unescape 
+--------------
+ Test        +
+ new line
 (1 row)
 
