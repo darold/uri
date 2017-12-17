@@ -657,7 +657,9 @@ uri_localpath_size(PG_FUNCTION_ARGS)
         if (lstat(localpath, &statbuf) < 0)
         {
                 if (errno != ENOENT)
-			ereport(FATAL, (errmsg("could not stat file \"%s\": %s", localpath, strerror(errno))));
+			ereport(ERROR, (
+				errmsg("could not stat file \"%s\": %s",
+						localpath, strerror(errno))));
 		PG_RETURN_NULL();
         }
 	else
@@ -666,7 +668,8 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 		switch(statbuf.st_mode & S_IFMT)
 		{
 		    case S_IFLNK:
-			ereport(ERROR, (errmsg("could not get size of a symlink \"%s\", not authorized", localpath)));
+			ereport(WARNING, (errmsg("could not get size of a symlink \"%s\", not authorized", localpath)));
+			PG_RETURN_NULL();
 			break;
 		}
 	}
@@ -750,7 +753,11 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 		{
 			if (http_code >= 400)
 			{
-				ereport(ERROR, (errmsg("Can not access to remote object, HTTP code returned: %lu", http_code)));
+				ereport(WARNING,
+					(errmsg("Can not access to remote object \"%s\", HTTP code returned: %lu",
+						url, http_code)));
+				curl_global_cleanup ();
+				PG_RETURN_NULL();
 			}
 			else
 			{
@@ -828,13 +835,19 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
 		if (http_code >= 400)
 		{
-			ereport(ERROR, (errmsg("Can not get remote object size, HTTP code returned: %lu", http_code)));
+			ereport(WARNING,
+				(errmsg("Can not get size of remote object \"%s\", HTTP code returned: %lu",
+					url, http_code)));
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
 		if ((res != CURLE_OK) || (filesize < 0.0))
 		{
 			if (res != CURLE_OK)
-				ereport(WARNING, (errmsg("Can not get remote object size, reason: %s.", curl_easy_strerror(res))));
+				ereport(WARNING,
+					(errmsg("Can not get size of remote object \"%s\", reason: %s",
+						url, curl_easy_strerror(res))));
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}
@@ -908,13 +921,19 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
 		if (http_code >= 400)
 		{
-			ereport(ERROR, (errmsg("Can not get remote object content-type, HTTP code returned: %lu", http_code)));
+			ereport(WARNING,
+				(errmsg("Can not get content-type of remote object \"%s\", HTTP code returned: %lu",
+					url, http_code)));
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
 		}
 		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_TYPE, &content_type);
 		if ((res != CURLE_OK) || (content_type == NULL))
 		{
 			if (res != CURLE_OK)
-				ereport(WARNING, (errmsg("Can not get remote object content-type, reason: %s.", curl_easy_strerror(res))));
+				ereport(WARNING,
+					(errmsg("Can not get content-type of remote object \"%s\", reason: %s",
+						url, curl_easy_strerror(res))));
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}
@@ -937,16 +956,14 @@ get_filetype(char *filename)
 	magic_cookie = magic_open(MAGIC_MIME);
 	if (magic_cookie == NULL)
 	{
-		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("unable to initialize magic library")));
+		ereport(FATAL, (errmsg("unable to initialize magic library")));
 	}
 	/* Loading default magic database */
 	if (magic_load(magic_cookie, NULL) != 0)
 	{
 		magic_err = magic_error(magic_cookie);
 		magic_close(magic_cookie);
-		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("cannot load magic database - %s", magic_err)));
+		ereport(FATAL, (errmsg("cannot load magic database - %s", magic_err)));
 	}
 
 	magic_str = magic_file(magic_cookie, filename);
