@@ -628,7 +628,8 @@ uri_rebase(PG_FUNCTION_ARGS)
 	if (!h_uri)
 	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("failed to rebase URI '%s' with base '%s'", url, base)));
+			 errmsg("failed to rebase URI '%s' with base '%s'",
+				url, base)));
 	}
 	uri_str(h_uri, buffer, BUFFER_SIZE);
         uri_destroy(h_uri);
@@ -670,7 +671,9 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 		switch(statbuf.st_mode & S_IFMT)
 		{
 		    case S_IFLNK:
-			ereport(WARNING, (errmsg("could not get size of a symlink \"%s\", not authorized", localpath)));
+			ereport(WARNING,
+				(errmsg("could not get size of a symlink \"%s\", not authorized",
+					localpath)));
 			PG_RETURN_NULL();
 			break;
 		}
@@ -707,7 +710,8 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 	/* get an easy handle */
 	if ((eh = curl_easy_init ()) == NULL)
 	{
-		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		ereport(FATAL,
+			(errmsg("could not instantiate libcurl using curl_easy_init ()")));
 	}
 	else
 	{
@@ -800,7 +804,8 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 	/* get an easy handle */
 	if ((eh = curl_easy_init ()) == NULL)
 	{
-		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		ereport(FATAL,
+			(errmsg("could not instantiate libcurl using curl_easy_init ()")));
 	}
 	else
 	{
@@ -870,7 +875,7 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 	CURL *eh = NULL;        /* libcurl handler */
 	CURLcode res ;
 	char err[CURL_ERROR_SIZE];
-	char *content_type;
+	char *content_type = NULL;
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -886,7 +891,8 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 	/* get an easy handle */
 	if ((eh = curl_easy_init ()) == NULL)
 	{
-		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		ereport(FATAL,
+			(errmsg("could not instantiate libcurl using curl_easy_init ()")));
 	}
 	else
 	{
@@ -942,6 +948,9 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 	}
 	curl_global_cleanup ();
 
+	if (!content_type)
+		PG_RETURN_NULL();
+
 	PG_RETURN_TEXT_P(cstring_to_text(content_type));
 }
 
@@ -965,7 +974,9 @@ get_filetype(char *filename)
 	{
 		magic_err = magic_error(magic_cookie);
 		magic_close(magic_cookie);
-		ereport(FATAL, (errmsg("cannot load magic database - %s", magic_err)));
+		ereport(FATAL,
+			(errmsg("cannot load magic database - %s",
+				magic_err)));
 	}
 
 	magic_str = magic_file(magic_cookie, filename);
@@ -1018,14 +1029,16 @@ uri_escape(PG_FUNCTION_ARGS)
 	/* get an easy handle */
 	if ((eh = curl_easy_init ()) == NULL)
 	{
-		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		ereport(FATAL,
+			(errmsg("could not instantiate libcurl using curl_easy_init ()")));
 	}
 	else
 	{
 		/* do not install signal  handlers in thread context */
 		curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
 		escaped = curl_easy_escape(eh, url, 0);
-		if (escaped) {
+		if (escaped)
+		{
 			curl_global_cleanup ();
 			PG_RETURN_TEXT_P(cstring_to_text(escaped));
 		}
@@ -1049,14 +1062,16 @@ uri_unescape(PG_FUNCTION_ARGS)
 	/* get an easy handle */
 	if ((eh = curl_easy_init ()) == NULL)
 	{
-		ereport(FATAL, (errmsg("could not instantiate libcurl using curl_easy_init ()")));
+		ereport(FATAL,
+			(errmsg("could not instantiate libcurl using curl_easy_init ()")));
 	}
 	else
 	{
 		/* do not install signal  handlers in thread context */
 		curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
 		unescaped = curl_easy_unescape(eh, url, 0, NULL);
-		if (unescaped) {
+		if (unescaped)
+		{
 			curl_global_cleanup ();
 			PG_RETURN_TEXT_P(cstring_to_text(unescaped));
 		}
