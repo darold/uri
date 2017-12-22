@@ -438,7 +438,7 @@ uri_hash(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
 
-        PG_RETURN_INT32(DatumGetInt32(hash_any((const unsigned char *) url, sizeof(url))));
+        PG_RETURN_INT32(DatumGetInt32(hash_any((unsigned char *) url, strlen(url))));
 }
 
 PG_FUNCTION_INFO_V1(uri_compare);
