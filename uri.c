@@ -37,7 +37,6 @@
 #define CURL_TIMEOUT 6
 
 typedef struct varlena t_uri;
-int search_str(char src[], char search[]);
 char *get_filetype(char *filename);
 bool is_real_file(char *filename);
 
@@ -527,44 +526,6 @@ uri_localpath_exists(PG_FUNCTION_ARGS)
 	PG_RETURN_BOOL(is_real_file(localpath));
 }
 
-/*
- * Function tool used to search a string inside an
- * other one. It returns the position of the first
- * occurence or -1 when the string is not found
- */
-int
-search_str(char src[], char search[])
-{
-	int i, j, first;
-	i = 0, j = 0;
-
-	while (src[i] != '\0')
-	{
-		while (src[i] != search[0] && src[i] != '\0')
-			i++;
-
-		if (src[i] == '\0')
-			return (-1);
-
-		first= i;
-
-		while (src[i] == search[j] && src[i] != '\0' && search[j] != '\0')
-		{
-			i++;
-			j++;
-		}
-
-		if (search[j] == '\0')
-			return (first);
-		if (src[i] == '\0')
-			return (-1);
-
-		i = first + 1;
-		j = 0;
-	}
-	return -1;
-}
-
 PG_FUNCTION_INFO_V1(uri_contains);
 Datum
 uri_contains(PG_FUNCTION_ARGS)
@@ -595,7 +556,7 @@ uri_contains(PG_FUNCTION_ARGS)
 	uri_destroy(uri1);
 	uri_destroy(uri2);
 
-	if (search_str(buffer1, buffer2) >= 0)
+	if (strstr(buffer1, buffer2) != NULL)
 		PG_RETURN_BOOL(true);
 
 	PG_RETURN_BOOL(false);
