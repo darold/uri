@@ -48,8 +48,10 @@ bool is_real_file(char *filename);
 PG_MODULE_MAGIC;
 Datum		uri_in(PG_FUNCTION_ARGS);
 Datum		uri_out(PG_FUNCTION_ARGS);
+/*
 Datum		uri_recv(PG_FUNCTION_ARGS);
 Datum		uri_send(PG_FUNCTION_ARGS);
+*/
 Datum		uri_is_equal(PG_FUNCTION_ARGS);
 Datum		uri_is_notequal(PG_FUNCTION_ARGS);
 Datum		uri_hash(PG_FUNCTION_ARGS);
@@ -105,6 +107,7 @@ uri_out(PG_FUNCTION_ARGS)
 	PG_RETURN_CSTRING(url);
 }
 
+/*
 PG_FUNCTION_INFO_V1(uri_recv);
 Datum
 uri_recv(PG_FUNCTION_ARGS)
@@ -135,7 +138,7 @@ uri_send(PG_FUNCTION_ARGS)
 	pq_sendtext(&buf, s, strlen(s));
 	PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
 }
-
+*/
 
 PG_FUNCTION_INFO_V1(uri_get_scheme);
 Datum
