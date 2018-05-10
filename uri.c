@@ -15,6 +15,7 @@
  * */
 
 #include <postgres.h>
+#include <common/fe_memutils.h>
 #include <access/hash.h>
 #include <fmgr.h>
 #include <catalog/pg_type.h>
@@ -961,7 +962,7 @@ get_filetype(char *filename)
 	const char *magic_str;
 	const char *magic_err;
 	magic_t    magic_cookie;
-	char       *mime;
+	char *mime;
 
 	/* Initialize magic library */
 	magic_cookie = magic_open(MAGIC_MIME);
@@ -980,8 +981,23 @@ get_filetype(char *filename)
 	}
 
 	magic_str = magic_file(magic_cookie, filename);
-	mime = palloc(256);
-	strncpy(mime, magic_str, 255);
+	if (magic_errno(magic_cookie) > 0)
+	{
+		ereport(WARNING,
+			(errmsg("cannot look for mime-type of file %s - %s",
+				filename, magic_error(magic_cookie))));
+		magic_close(magic_cookie);
+		return NULL;
+
+	}
+
+	mime = strdup(magic_str);
+	if (!mime)
+	{
+		magic_close(magic_cookie);
+		fprintf(stderr, _("out of memory\n"));
+		return NULL;
+	}
 
 	magic_close(magic_cookie);
 

@@ -106,6 +106,26 @@ This also mean that this extension stores normalized URI and not the original st
 If you want to retrieve the original value `file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf`
 this will not be possible anymore.
 
+Mime type and size
+------------------
+
+Function `uri_localpath_content_type()`, `uri_localpath_exists()`, `uri_localpath_size()`, `uri_remotepath_content_type()`,
+`uri_remotepath_exists()` and `uri_remotepath_size()` and so on meta function `uri_path_content_type()`, `uri_path_exists()`
+and `uri_path_size()` return NULL on uri access failure. The error returned by libcurl or the operating
+system you have to use your own script to test the URL. In the future this may change if users ask for a buildin
+function to report URL access error, at now I can't find any reason to do that.
+
+Function `uri_remotepath_exists()` returns true when HTTP code returned by libcurl < 400, false when HTTP code 404 is returned
+and NULL otherwise (HTTP code >= 400).
+
+Functions `uri_remotepath_content_type()` returns the content-type found by libcurl, NULL otherwise. A WARNING with the HTTP
+error code is outputed on failure.
+
+Function `uri_localpath_content_type()` returns the mime type of the file using libmagic, or the operating error message in
+case of failure.
+
+
+
 Operators
 ---------
 
