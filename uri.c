@@ -21,20 +21,19 @@
 #include <utils/builtins.h>
 #include <libpq/pqformat.h>
 
-/*
-#include "postgres_fe.h"
-*/
-
 #include "string.h"
 #include <liburi.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
 #include <magic.h>
 
-#define LBUFSIZ		32768
-#define BUFFER_SIZE 8192
+#define LBUFSIZ	     32768
+#define BUFFER_SIZE  8192
 #define MAXREDIR     3
 #define CURL_TIMEOUT 6
+
+#define TRUE         1
+#define FALSE        0
 
 typedef struct varlena t_uri;
 char *get_filetype(char *filename);
