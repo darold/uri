@@ -22,23 +22,21 @@
 #include <utils/builtins.h>
 #include <libpq/pqformat.h>
 
-/*
-#include "postgres_fe.h"
-*/
-
 #include "string.h"
 #include <liburi.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
 #include <magic.h>
 
-#define LBUFSIZ		32768
-#define BUFFER_SIZE 8192
+#define LBUFSIZ	     32768
+#define BUFFER_SIZE  8192
 #define MAXREDIR     3
 #define CURL_TIMEOUT 6
 
+#define TRUE         1
+#define FALSE        0
+
 typedef struct varlena t_uri;
-int search_str(char src[], char search[]);
 char *get_filetype(char *filename);
 bool is_real_file(char *filename);
 
@@ -50,8 +48,10 @@ bool is_real_file(char *filename);
 PG_MODULE_MAGIC;
 Datum		uri_in(PG_FUNCTION_ARGS);
 Datum		uri_out(PG_FUNCTION_ARGS);
+/*
 Datum		uri_recv(PG_FUNCTION_ARGS);
 Datum		uri_send(PG_FUNCTION_ARGS);
+*/
 Datum		uri_is_equal(PG_FUNCTION_ARGS);
 Datum		uri_is_notequal(PG_FUNCTION_ARGS);
 Datum		uri_hash(PG_FUNCTION_ARGS);
@@ -107,6 +107,7 @@ uri_out(PG_FUNCTION_ARGS)
 	PG_RETURN_CSTRING(url);
 }
 
+/*
 PG_FUNCTION_INFO_V1(uri_recv);
 Datum
 uri_recv(PG_FUNCTION_ARGS)
@@ -137,7 +138,7 @@ uri_send(PG_FUNCTION_ARGS)
 	pq_sendtext(&buf, s, strlen(s));
 	PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
 }
-
+*/
 
 PG_FUNCTION_INFO_V1(uri_get_scheme);
 Datum
@@ -439,7 +440,7 @@ uri_hash(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
 
-        PG_RETURN_INT32(DatumGetInt32(hash_any((const unsigned char *) url, sizeof(url))));
+        PG_RETURN_INT32(DatumGetInt32(hash_any((unsigned char *) url, strlen(url))));
 }
 
 PG_FUNCTION_INFO_V1(uri_compare);
@@ -528,44 +529,6 @@ uri_localpath_exists(PG_FUNCTION_ARGS)
 	PG_RETURN_BOOL(is_real_file(localpath));
 }
 
-/*
- * Function tool used to search a string inside an
- * other one. It returns the position of the first
- * occurence or -1 when the string is not found
- */
-int
-search_str(char src[], char search[])
-{
-	int i, j, first;
-	i = 0, j = 0;
-
-	while (src[i] != '\0')
-	{
-		while (src[i] != search[0] && src[i] != '\0')
-			i++;
-
-		if (src[i] == '\0')
-			return (-1);
-
-		first= i;
-
-		while (src[i] == search[j] && src[i] != '\0' && search[j] != '\0')
-		{
-			i++;
-			j++;
-		}
-
-		if (search[j] == '\0')
-			return (first);
-		if (src[i] == '\0')
-			return (-1);
-
-		i = first + 1;
-		j = 0;
-	}
-	return -1;
-}
-
 PG_FUNCTION_INFO_V1(uri_contains);
 Datum
 uri_contains(PG_FUNCTION_ARGS)
@@ -596,7 +559,7 @@ uri_contains(PG_FUNCTION_ARGS)
 	uri_destroy(uri1);
 	uri_destroy(uri2);
 
-	if (search_str(buffer1, buffer2) >= 0)
+	if (strstr(buffer1, buffer2) != NULL)
 		PG_RETURN_BOOL(true);
 
 	PG_RETURN_BOOL(false);
