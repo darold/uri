@@ -65,7 +65,7 @@ Datum		uri_compare(PG_FUNCTION_ARGS);
 Datum		uri_localfile_exists(PG_FUNCTION_ARGS);
 Datum		uri_contains(PG_FUNCTION_ARGS);
 Datum		uri_contained(PG_FUNCTION_ARGS);
-Datum		uri_rebase(PG_FUNCTION_ARGS);
+Datum		uri_rebase_url(PG_FUNCTION_ARGS);
 Datum		uri_localpath_exists(PG_FUNCTION_ARGS);
 Datum		uri_localpath_size(PG_FUNCTION_ARGS);
 Datum		uri_remotepath_exists(PG_FUNCTION_ARGS);
@@ -571,9 +571,9 @@ uri_contained(PG_FUNCTION_ARGS)
 	PG_RETURN_DATUM(DirectFunctionCall2( uri_contains, PG_GETARG_DATUM(1), PG_GETARG_DATUM(0) ));
 }
 
-PG_FUNCTION_INFO_V1(uri_rebase);
+PG_FUNCTION_INFO_V1(uri_rebase_url);
 Datum
-uri_rebase(PG_FUNCTION_ARGS)
+uri_rebase_url(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
 	char   *base = TextDatumGetCString(PG_GETARG_DATUM(1));
@@ -587,6 +587,17 @@ uri_rebase(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", base)));
 	}
+	h_uri = uri_create_str(url, NULL);
+	if (!h_uri)
+	{
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+	}
+		if(uri_rebase(uri, base))
+		{
+			uri_destroy(uri);
+			return NULL;
+		}
 	h_uri = uri_create_str(url, b_uri);
 	if (!h_uri)
 	{
