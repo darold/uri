@@ -17,9 +17,21 @@ uri columns can be indexed using btree and hash indexes.
 Requirement
 -----------
 
-You need to install [liburi](https://github.com/nevali/liburi) to be able to compile the uri
+You will need git, automake, autoconf and libtool to install liburi. The uri extension also need
+libcurl-dev: `apt-get install libcurl4-openssl-dev` or `yum install libcurl-openssl-devel`.
+
+You need to install [liburi](https://github.com/bbcarchdev/liburi) to be able to compile the uri
 extension. liburi is a simple interface for parsing URIs based on [uriparser](http://uriparser.sourceforge.net/).
-uriparser can be found as binary package on almost all Linux or BSD like distributions.
+To install it:
+
+	git clone git://github.com/bbcarchdev/liburi.git
+	cd liburi
+	git submodule update --init --recursive
+	autoreconf -i
+	./configure --prefix=/usr/local/liburi
+	make
+	make check
+	sudo make install
 
 Extraction of mime type from a local file is done with the use of [libmagic](http://www.darwinsys.com/file/). libmagic
 is found with all Linux or BSD like distributions and comes with the `file` command, you will be able to install the
