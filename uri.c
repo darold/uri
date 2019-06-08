@@ -593,17 +593,10 @@ uri_rebase_url(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-		if(uri_rebase(uri, base))
-		{
-			uri_destroy(uri);
-			return NULL;
-		}
-	h_uri = uri_create_str(url, b_uri);
-	if (!h_uri)
+	if (uri_rebase(h_uri, b_uri))
 	{
-		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("failed to rebase URI '%s' with base '%s'",
-				url, base)));
+		uri_destroy(h_uri);
+		PG_RETURN_NULL();
 	}
 	uri_str(h_uri, buffer, BUFFER_SIZE);
         uri_destroy(h_uri);
