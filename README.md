@@ -44,8 +44,8 @@ Building
 Use the following command to build and install the extension,
 `pg_config` must be in found from your PATH environment variable.
 
-	make USE_PGXS=1
-	sudo make USE_PGXS=1 install
+	make
+	sudo make install
 
 in psql execute:
 
