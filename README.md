@@ -161,15 +161,11 @@ Examples
 The following example URIs illustrate several URI schemes and
 variations in their common syntax components:
 
-	INSERT INTO example VALUES (6, 'ftp://ftp.is.co.za/rfc/rfc1808.txt');
-	INSERT INTO example VALUES (7, 'http://www.ietf.org/rfc/rfc2396.txt');
-	INSERT INTO example VALUES (8, 'ldap://[2001:db8::7]/c=GB?objectClass?one');
-	INSERT INTO example VALUES (9, 'mailto:John.Doe@example.com');
-	INSERT INTO example VALUES (10, 'news:comp.infosystems.www.servers.unix');
-	INSERT INTO example VALUES (11, 'tel:+1-816-555-1212');
-	INSERT INTO example VALUES (12, 'telnet://192.0.2.16:80/');
-	INSERT INTO example VALUES (13, 'urn:oasis:names:specification:docbook:dtd:xml:4.1.2');
-	INSERT INTO example VALUES (13, 'file:///etc/postgresql/9.4/main/postgresql.conf.dist');
+	INSERT INTO example VALUES (1, 'ftp://ftp.is.co.za/rfc/rfc1808.txt');
+	INSERT INTO example VALUES (2, 'http://www.ietf.org/rfc/rfc2396.txt');
+	INSERT INTO example VALUES (3, 'ldap://[2001:db8::7]/c=GB?objectClass?one');
+	INSERT INTO example VALUES (4, 'telnet://192.0.2.16:80/');
+	INSERT INTO example VALUES (5, 'file:///etc/postgresql/9.4/main/postgresql.conf.dist');
 
 
 Indexes
