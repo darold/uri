@@ -9,7 +9,7 @@ DATA = uri--1.1.0.sql
 REGRESS = uri
 
 # add include and library paths for liburi
-LIBURI_CONFIG = /usr/local/bin/liburi-config
+LIBURI_CONFIG = $(shell which /usr/bin/liburi-config /usr/local/bin/liburi-config /usr/local/liburi/bin/liburi-config 2>/dev/null)
 LIBCURL_CONFIG = curl-config
 PG_CPPFLAGS := $(shell $(LIBURI_CONFIG) --cflags)
 SHLIB_LINK := $(shell $(LIBURI_CONFIG) --libs) $(shell $(LIBCURL_CONFIG) --libs) -lmagic
