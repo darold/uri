@@ -14,14 +14,14 @@ INSERT INTO t1 (url) VALUES ('http://pgcluu.darold.net/example/pgbouncer-dolibar
 INSERT INTO t1 (url) VALUES ('ftp://ftp.is.co.za/rfc/rfc1808.txt');
 INSERT INTO t1 (url) VALUES ('http://www.ietf.org/rfc/rfc2396.txt');
 INSERT INTO t1 (url) VALUES ('ldap://[2001:db8::7]/c=GB?objectClass?one');
-INSERT INTO t1 (url) VALUES ('mailto:John.Doe@test.com');
-INSERT INTO t1 (url) VALUES ('news:comp.infosystems.www.servers.unix');
-INSERT INTO t1 (url) VALUES ('tel:+1-816-555-1212');
+--INSERT INTO t1 (url) VALUES ('mailto:John.Doe@test.com');
+--INSERT INTO t1 (url) VALUES ('news:comp.infosystems.www.servers.unix');
+--INSERT INTO t1 (url) VALUES ('tel:+1-816-555-1212');
 INSERT INTO t1 (url) VALUES ('telnet://192.0.2.16:80/');
-INSERT INTO t1 (url) VALUES ('urn:oasis:names:specification:docbook:dtd:xml:4.1.2');
+--INSERT INTO t1 (url) VALUES ('urn:oasis:names:specification:docbook:dtd:xml:4.1.2');
 INSERT INTO t1 (url) VALUES ('switch?toggle=1');
-INSERT INTO t1 (url) VALUES ('file:///etc/postgresql/9.6/main/postgresql.conf');
-INSERT INTO t1 (url) VALUES ('file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf');
+INSERT INTO t1 (url) VALUES ('file:///etc/postgresql/11/main/postgresql.conf');
+INSERT INTO t1 (url) VALUES ('file:///etc/postgresql/11/main/../../11/main/pg_hba.conf');
 INSERT INTO t1 (url) VALUES ('/etc/postgresql/9.6/main/postgresql.conf');
 -- Normalize URIs according to RFC 3986
 INSERT INTO t1 (url) VALUES ('HTTPS://www.Example.com:443/../test/../foo/index.html');
@@ -38,7 +38,7 @@ SELECT * FROM t1;
 
 -- Use btree index
 SET enable_seqscan = off;
-EXPLAIN (COSTS off) SELECT * FROM t1 WHERE url = 'file:///etc/postgresql/9.3/main/../../9.6/main/postgresql.conf';
+EXPLAIN (COSTS off) SELECT * FROM t1 WHERE url = 'file:///etc/postgresql/11/main/../../11/main/pg_hba.conf';
 SET enable_seqscan = on;
 
 -- Test all functions of the uri extension

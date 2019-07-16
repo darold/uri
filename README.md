@@ -17,9 +17,21 @@ uri columns can be indexed using btree and hash indexes.
 Requirement
 -----------
 
-You need to install [liburi](https://github.com/nevali/liburi) to be able to compile the uri
+You will need git, automake, autoconf and libtool to install liburi. The uri extension also need
+libcurl-dev: `apt-get install libcurl4-openssl-dev` or `yum install libcurl-openssl-devel`.
+
+You need to install [liburi](https://github.com/bbcarchdev/liburi) to be able to compile the uri
 extension. liburi is a simple interface for parsing URIs based on [uriparser](http://uriparser.sourceforge.net/).
-uriparser can be found as binary package on almost all Linux or BSD like distributions.
+To install it:
+
+	git clone git://github.com/bbcarchdev/liburi.git
+	cd liburi
+	git submodule update --init --recursive
+	autoreconf -i
+	./configure --prefix=/usr/local/liburi
+	make
+	make check
+	sudo make install
 
 Extraction of mime type from a local file is done with the use of [libmagic](http://www.darwinsys.com/file/). libmagic
 is found with all Linux or BSD like distributions and comes with the `file` command, you will be able to install the
@@ -32,8 +44,8 @@ Building
 Use the following command to build and install the extension,
 `pg_config` must be in found from your PATH environment variable.
 
-	make USE_PGXS=1
-	sudo make USE_PGXS=1 install
+	make
+	sudo make install
 
 in psql execute:
 
@@ -169,15 +181,11 @@ Examples
 The following example URIs illustrate several URI schemes and
 variations in their common syntax components:
 
-	INSERT INTO example VALUES (6, 'ftp://ftp.is.co.za/rfc/rfc1808.txt');
-	INSERT INTO example VALUES (7, 'http://www.ietf.org/rfc/rfc2396.txt');
-	INSERT INTO example VALUES (8, 'ldap://[2001:db8::7]/c=GB?objectClass?one');
-	INSERT INTO example VALUES (9, 'mailto:John.Doe@example.com');
-	INSERT INTO example VALUES (10, 'news:comp.infosystems.www.servers.unix');
-	INSERT INTO example VALUES (11, 'tel:+1-816-555-1212');
-	INSERT INTO example VALUES (12, 'telnet://192.0.2.16:80/');
-	INSERT INTO example VALUES (13, 'urn:oasis:names:specification:docbook:dtd:xml:4.1.2');
-	INSERT INTO example VALUES (13, 'file:///etc/postgresql/9.4/main/postgresql.conf.dist');
+	INSERT INTO example VALUES (1, 'ftp://ftp.is.co.za/rfc/rfc1808.txt');
+	INSERT INTO example VALUES (2, 'http://www.ietf.org/rfc/rfc2396.txt');
+	INSERT INTO example VALUES (3, 'ldap://[2001:db8::7]/c=GB?objectClass?one');
+	INSERT INTO example VALUES (4, 'telnet://192.0.2.16:80/');
+	INSERT INTO example VALUES (5, 'file:///etc/postgresql/9.4/main/postgresql.conf.dist');
 
 
 Indexes
