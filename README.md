@@ -47,7 +47,11 @@ Use the following command to build and install the extension,
 	make
 	sudo make install
 
-in psql execute:
+To test the extension run:
+
+	make installcheck
+
+To use the extension in your database execute:
 
 	CREATE EXTENSION uri;
 
