@@ -1,7 +1,3 @@
-DROP DATABASE test_uri;
-CREATE DATABASE test_uri;
-
-\c test_uri
 CREATE EXTENSION uri;
 
 CREATE TABLE t1 (id serial, url uri);
