@@ -3,8 +3,9 @@
 MODULE_big = uri
 OBJS = uri.o 
 
+EXTVER=$(shell grep "version" uri.control | awk -F'=' '{print $$2};' | sed "s/[ ']//g")
 EXTENSION = uri
-DATA = uri--1.1.0.sql
+DATA = uri--${EXTVER}.sql
 
 REGRESS = uri
 
