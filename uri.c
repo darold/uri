@@ -480,30 +480,35 @@ uri_compare(PG_FUNCTION_ARGS)
 bool
 is_real_file(char *filename)
 {
-	bool		exists = false;
+	bool		exists = true;
 	struct stat	statbuf;
+	char          *dstpath;
 
-        /* Does the corresponding local file exists as a regular file? */
-        if (lstat(filename, &statbuf) < 0)
-        {
-                if (errno != ENOENT)
-			ereport(ERROR, (
-				errmsg("could not stat file \"%s\": %s",
-						filename, strerror(errno))));
-                exists = false;
-        }
-        else
+        /*
+	 * Does the corresponding local file exists as a regular file?
+	 * Get the real path of the file when it is a symlink.
+	 */
+	dstpath = realpath(filename, NULL);
+	if (dstpath == NULL)
 	{
-		/* check if it is a symlink and return false in this case */
-		switch(statbuf.st_mode & S_IFMT)
+		if (errno != ENOENT)
+			ereport(ERROR, (
+				errmsg("could not get real path of file \"%s\"",
+						filename)));
+                exists = false;
+	}
+	else
+	{	
+		if (stat(dstpath, &statbuf) < 0)
 		{
-		    case S_IFLNK:
+			free(dstpath);
+			if (errno != ENOENT)
+				ereport(ERROR, (
+					errmsg("could not stat file \"%s\": %s",
+							filename, strerror(errno))));
 			exists = false;
-			break;
-		    case S_IFREG:
-			exists = true;
-			break;
 		}
+		free(dstpath);
 	}
 
 	return exists;
@@ -610,10 +615,11 @@ PG_FUNCTION_INFO_V1(uri_localpath_size);
 Datum
 uri_localpath_size(PG_FUNCTION_ARGS)
 {
-	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char		localpath[MAXPGPATH];
-	URI		*uri;
-	struct stat	statbuf;
+	char        *url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char         localpath[MAXPGPATH];
+	char        *dstpath;
+	URI         *uri;
+	struct stat  statbuf;
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -625,8 +631,18 @@ uri_localpath_size(PG_FUNCTION_ARGS)
         uri_destroy(uri);
 
         /* Does the corresponding local file exists? */
-        if (lstat(localpath, &statbuf) < 0)
+	dstpath = realpath(localpath, NULL);
+	if (dstpath == NULL)
+	{
+                if (errno != ENOENT)
+			ereport(ERROR, (
+				errmsg("could not get real path of file \"%s\": %s",
+						localpath, strerror(errno))));
+		PG_RETURN_NULL();
+	}
+        if (stat(dstpath, &statbuf) < 0)
         {
+		free(dstpath);
                 if (errno != ENOENT)
 			ereport(ERROR, (
 				errmsg("could not stat file \"%s\": %s",
@@ -635,6 +651,7 @@ uri_localpath_size(PG_FUNCTION_ARGS)
         }
 	else
 	{
+		free(dstpath);
 		/* check if it is a symlink and return NULL in this case */
 		switch(statbuf.st_mode & S_IFMT)
 		{
