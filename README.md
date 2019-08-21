@@ -77,9 +77,6 @@ The following are two URI examples and their component parts:
          \_/   \______________/\_________/ \_________/ \__/
           |           |            |            |        |
        scheme     authority       path        query   fragment
-          |   _____________________|__
-         / \ /                        \
-         urn:example:animal:ferret:nose
 
 Other functions:
 
