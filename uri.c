@@ -22,7 +22,9 @@
 #include <utils/builtins.h>
 #include <libpq/pqformat.h>
 
+#include <stdio.h>
 #include "string.h"
+#include <uriparser/Uri.h>
 #include <liburi.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
@@ -75,6 +77,7 @@ Datum		uri_remotepath_content_type(PG_FUNCTION_ARGS);
 Datum		uri_localpath_content_type(PG_FUNCTION_ARGS);
 Datum		uri_escape(PG_FUNCTION_ARGS);
 Datum		uri_unescape(PG_FUNCTION_ARGS);
+Datum		uri_get_relative_path(PG_FUNCTION_ARGS);
 
 
 PG_FUNCTION_INFO_V1(uri_in);
@@ -1082,3 +1085,51 @@ uri_unescape(PG_FUNCTION_ARGS)
 
 }
 
+PG_FUNCTION_INFO_V1(uri_get_relative_path);
+Datum
+uri_get_relative_path(PG_FUNCTION_ARGS)
+{
+	char    *url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char    *base = TextDatumGetCString(PG_GETARG_DATUM(1));
+	UriParserStateA stateB;
+	UriUriA  b_uri;
+	UriParserStateA stateH;
+	UriUriA  h_uri;
+	UriUriA  p_uri;
+	char     buffer[BUFFER_SIZE];
+
+	stateB.uri = &b_uri;
+	stateH.uri = &h_uri;
+
+	if (uriParseUriA(&stateB, base) != URI_SUCCESS)
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", base)));
+
+	if (uriParseUriA(&stateH, url) != URI_SUCCESS)
+	{
+		uriFreeUriMembersA(&b_uri);
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+	}
+
+	if (uriRemoveBaseUriA(&p_uri, &h_uri, &b_uri, URI_FALSE) != URI_SUCCESS)
+	{
+		uriFreeUriMembersA(&b_uri);
+		uriFreeUriMembersA(&h_uri);
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("fail to extract relative path from URI \"%s\"", url)));
+	}
+
+	if (uriToStringA(buffer, &p_uri, BUFFER_SIZE, NULL) != URI_SUCCESS)
+	{
+		uriFreeUriMembersA(&b_uri);
+		uriFreeUriMembersA(&h_uri);
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("fail to translate relative path to string")));
+	}
+	uriFreeUriMembersA(&b_uri);
+	uriFreeUriMembersA(&h_uri);
+	uriFreeUriMembersA(&p_uri);
+
+	PG_RETURN_POINTER((t_uri *) cstring_to_text(buffer));
+}
