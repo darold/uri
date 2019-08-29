@@ -1099,12 +1099,13 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 	char     buffer[BUFFER_SIZE];
 
 	stateB.uri = &b_uri;
-	stateH.uri = &h_uri;
-
 	if (uriParseUriA(&stateB, base) != URI_SUCCESS)
+	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", base)));
+	}
 
+	stateH.uri = &h_uri;
 	if (uriParseUriA(&stateH, url) != URI_SUCCESS)
 	{
 		uriFreeUriMembersA(&b_uri);
@@ -1124,6 +1125,7 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 	{
 		uriFreeUriMembersA(&b_uri);
 		uriFreeUriMembersA(&h_uri);
+		uriFreeUriMembersA(&p_uri);
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("fail to translate relative path to string")));
 	}
