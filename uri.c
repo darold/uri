@@ -1121,27 +1121,44 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 	/* in case we can't extract a relative path we return the URL as is */
 	if (uriRemoveBaseUriA(&p_uri, &h_uri, &b_uri, URI_FALSE) != URI_SUCCESS)
 	{
+		int i = 0;
+
 		uriFreeUriMembersA(&b_uri);
 		uriFreeUriMembersA(&h_uri);
+
+		/*
+		 * When url is a path only uriRemoveBaseUriA() do not works,
+		 * try to remove the base directory if we can find it in the url
+		 */
+		for (i = 0; i < strlen(url); i++)
+			if (url[i] != base[i])
+				break;
+		/*
+		 * case when the base directory does not end with a /,
+		 *prevent a leading / to resulting path
+		*/
+		if (i > 0 && url[i] == '/')
+			i++;
+		url += i;
 		PG_RETURN_POINTER((t_uri *) cstring_to_text(url));
 	}
+	uriFreeUriMembersA(&b_uri);
+	uriFreeUriMembersA(&h_uri);
 
 	if ((rc = uriToStringCharsRequiredA(&p_uri, &needed)) != URI_SUCCESS)
 		elog(ERROR, "uriToStringCharsRequiredA() failed: error code %d", rc);
 	needed++;
 
-	if (!needed ||
-                (buffer = (char *) malloc(needed)) == NULL ||
+	if (!needed)
+		PG_RETURN_NULL();
+
+	if ((buffer = (char *) malloc(needed)) == NULL ||
 		uriToStringA(buffer, &p_uri, needed, NULL) != URI_SUCCESS)
 	{
-		uriFreeUriMembersA(&b_uri);
-		uriFreeUriMembersA(&h_uri);
 		uriFreeUriMembersA(&p_uri);
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("fail to translate relative path from uri to string")));
 	}
-	uriFreeUriMembersA(&b_uri);
-	uriFreeUriMembersA(&h_uri);
 	uriFreeUriMembersA(&p_uri);
 
 	PG_RETURN_POINTER((t_uri *) cstring_to_text(buffer));
