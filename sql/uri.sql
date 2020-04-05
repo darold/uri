@@ -118,11 +118,15 @@ SELECT uri_unescape('%24%20%26%20%3C%20%3E%20%3F%20%3B%20%23%20%3A%20%3D%20%2C%2
 SELECT uri_escape(E'Test\nnew line');
 SELECT uri_unescape('Test%0Anew%20line');
 
--- Rebase a path from a base URI, returns http:///tmp/test_dir/dir1/index.html
-SELECT uri_rebase_url('dir1/index.html', 'http:///tmp/test_dir/');
+-- Rebase a path from a base URI, returns http://localhost/tmp/test_dir/dir1/index.html
+SELECT uri_rebase_url('dir1/index.html', 'http://localhost/tmp/test_dir/');
 -- A base always end with a / any extra path after last / is removed from the base
-SELECT uri_rebase_url('dir1/index.html', 'http:///tmp/test_dir');
+SELECT uri_rebase_url('dir1/index.html', 'http://localhost/tmp/test_dir');
+-- A base must be an URL, if it's an absolute path a file:// is appened internaly
+-- Must return: file:///tmp/test_dir/dir1/index.html
+SELECT uri_rebase_url('dir1/index.html', '/tmp/test_dir/');
 
--- Relative path, returns:  dir1/file.txt
+-- Relative path, all three queries must return:  dir1/file.txt
 SELECT uri_get_relative_path('file:///tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');
+SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', '/tmp/test_dir');
 SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');

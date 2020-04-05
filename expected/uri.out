@@ -434,17 +434,44 @@ SELECT uri_unescape('Test%0Anew%20line');
  new line
 (1 row)
 
--- Relative path, returns:  dir1/file.txt
+-- Rebase a path from a base URI, returns http://localhost/tmp/test_dir/dir1/index.html
+SELECT uri_rebase_url('dir1/index.html', 'http://localhost/tmp/test_dir/');
+                uri_rebase_url                 
+-----------------------------------------------
+ http://localhost/tmp/test_dir/dir1/index.html
+(1 row)
+
+-- A base always end with a / any extra path after last / is removed from the base
+SELECT uri_rebase_url('dir1/index.html', 'http://localhost/tmp/test_dir');
+            uri_rebase_url            
+--------------------------------------
+ http://localhost/tmp/dir1/index.html
+(1 row)
+
+-- A base must be an URL, if it's an absolute path a file:// is appened internaly
+-- Must return: file:///tmp/test_dir/dir1/index.html
+SELECT uri_rebase_url('dir1/index.html', '/tmp/test_dir/');
+            uri_rebase_url            
+--------------------------------------
+ file:///tmp/test_dir/dir1/index.html
+(1 row)
+
+-- Relative path, all three queries must return:  dir1/file.txt
 SELECT uri_get_relative_path('file:///tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');
  uri_get_relative_path 
 -----------------------
  dir1/file.txt
 (1 row)
 
--- Rebase a path from a base URI, returns http:///tmp/test_dir/dir1/index.html
-SELECT uri_rebase_url('dir1/index.html', 'http:///tmp/test_dir');
-       uri_rebase_url        
------------------------------
- http:///tmp/dir1/index.html
+SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', '/tmp/test_dir');
+ uri_get_relative_path 
+-----------------------
+ dir1/file.txt
+(1 row)
+
+SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');
+ uri_get_relative_path 
+-----------------------
+ dir1/file.txt
 (1 row)
 
