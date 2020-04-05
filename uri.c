@@ -30,8 +30,6 @@
 #include <curl/curl.h>
 #include <magic.h>
 
-#define LBUFSIZ	     32768
-#define BUFFER_SIZE  8192
 #define MAXREDIR     3
 #define CURL_TIMEOUT 6
 
@@ -41,6 +39,7 @@
 typedef struct varlena t_uri;
 char *get_filetype(char *filename);
 bool is_real_file(char *filename);
+char *uriToStr(URI *uri);
 
 
 /*
@@ -80,13 +79,33 @@ Datum		uri_unescape(PG_FUNCTION_ARGS);
 Datum		uri_get_relative_path(PG_FUNCTION_ARGS);
 
 
+char *
+uriToStr(URI *uri)
+{
+	char    *buffer = NULL;
+	size_t  needed;
+
+	needed = uri_str(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_str(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to get string from URI")));
+	}
+	return buffer;
+}
+
+
 PG_FUNCTION_INFO_V1(uri_in);
 Datum
 uri_in(PG_FUNCTION_ARGS)
 {
 	const char	*url = PG_GETARG_CSTRING(0);
-	char    buffer[BUFFER_SIZE];
 	URI     *h_uri;
+	char    *buffer;
 
 	h_uri = uri_create_str(url, NULL);
 	if (!h_uri)
@@ -94,7 +113,7 @@ uri_in(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_str(h_uri, buffer, BUFFER_SIZE);
+	buffer = uriToStr(h_uri);
         uri_destroy(h_uri);
 
 	PG_RETURN_POINTER((t_uri *) cstring_to_text(buffer));
@@ -169,8 +188,9 @@ Datum
 uri_get_auth(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
 	URI	*uri;
+	char    *buffer = NULL;
+	size_t needed; 
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -178,7 +198,15 @@ uri_get_auth(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_auth(uri, buffer, BUFFER_SIZE);
+	needed = uri_auth(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_auth(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		PG_RETURN_NULL();
+	}
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
@@ -189,9 +217,10 @@ PG_FUNCTION_INFO_V1(uri_get_host);
 Datum
 uri_get_host(PG_FUNCTION_ARGS)
 {
-	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
+	char    *url = TextDatumGetCString(PG_GETARG_DATUM(0));
 	URI	*uri;
+	char    *buffer = NULL;
+	size_t  needed; 
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -199,11 +228,18 @@ uri_get_host(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_host(uri, buffer, BUFFER_SIZE);
+	needed = uri_host(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_host(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		PG_RETURN_NULL();
+	}
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
-
 }
 
 PG_FUNCTION_INFO_V1(uri_get_port);
@@ -253,8 +289,9 @@ Datum
 uri_get_path(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
 	URI	*uri;
+	char    *buffer = NULL;
+	size_t needed;
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -262,7 +299,15 @@ uri_get_path(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_path(uri, buffer, BUFFER_SIZE);
+	needed = uri_path(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_path(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		PG_RETURN_NULL();
+	}
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
@@ -274,8 +319,9 @@ Datum
 uri_get_query(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
 	URI	*uri;
+	char    *buffer = NULL;
+	size_t needed; 
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -283,7 +329,15 @@ uri_get_query(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_query(uri, buffer, BUFFER_SIZE);
+	needed = uri_query(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_query(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		PG_RETURN_NULL();
+	}
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
@@ -294,8 +348,9 @@ Datum
 uri_get_fragment(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
 	URI	*uri;
+	char    *buffer = NULL;
+	size_t needed; 
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -303,7 +358,15 @@ uri_get_fragment(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_fragment(uri, buffer, BUFFER_SIZE);
+	needed = uri_fragment(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_fragment(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		PG_RETURN_NULL();
+	}
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
@@ -357,8 +420,8 @@ Datum
 uri_get_str(PG_FUNCTION_ARGS)
 {
 	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
 	URI	*uri;
+	char    *buffer;
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -366,11 +429,10 @@ uri_get_str(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_str(uri, buffer, BUFFER_SIZE);
+	buffer = uriToStr(uri);
         uri_destroy(uri);
 
 	PG_RETURN_TEXT_P(cstring_to_text(buffer));
-
 }
 
 PG_FUNCTION_INFO_V1(uri_is_equal);
@@ -450,12 +512,12 @@ PG_FUNCTION_INFO_V1(uri_compare);
 Datum
 uri_compare(PG_FUNCTION_ARGS)
 {  
-	char   *url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char   *url2 = TextDatumGetCString(PG_GETARG_DATUM(1));
+	char    *url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char    *url2 = TextDatumGetCString(PG_GETARG_DATUM(1));
 	URI	*uri1;
 	URI	*uri2;
-	char    buffer1[BUFFER_SIZE];
-	char    buffer2[BUFFER_SIZE];
+	char    *buffer1;
+	char    *buffer2;
 
 	uri1 = uri_create_str(url1, NULL);
 	if (!uri1)
@@ -470,14 +532,13 @@ uri_compare(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse right URI '%s'", url2)));
 	}
-
-	uri_str(uri1, buffer1, BUFFER_SIZE);
-	uri_str(uri2, buffer2, BUFFER_SIZE);
+	buffer1 = uriToStr(uri1);
         uri_destroy(uri1);
+
+	buffer2 = uriToStr(uri2);
         uri_destroy(uri2);
 
 	PG_RETURN_INT32(strcmp(buffer1, buffer2));
-
 }
 
 bool
@@ -547,12 +608,12 @@ PG_FUNCTION_INFO_V1(uri_contains);
 Datum
 uri_contains(PG_FUNCTION_ARGS)
 {
-	char   *url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char   *url2 = TextDatumGetCString(PG_GETARG_DATUM(1));
+	char    *url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char    *url2 = TextDatumGetCString(PG_GETARG_DATUM(1));
 	URI	*uri1;
 	URI	*uri2;
-	char    buffer1[BUFFER_SIZE];
-	char    buffer2[BUFFER_SIZE];
+	char    *buffer1;
+	char    *buffer2;
 
 	uri1 = uri_create_str(url1, NULL);
 	if (!uri1)
@@ -560,6 +621,8 @@ uri_contains(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse left URI '%s'", url1)));
 	}
+	buffer1 = uriToStr(uri1);
+	uri_destroy(uri1);
 
 	uri2 = uri_create_str(url2, NULL);
 	if (!uri2)
@@ -567,10 +630,7 @@ uri_contains(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse right URI '%s'", url2)));
 	}
-
-	uri_str(uri1, buffer1, BUFFER_SIZE);
-	uri_str(uri2, buffer2, BUFFER_SIZE);
-	uri_destroy(uri1);
+	buffer2 = uriToStr(uri2);
 	uri_destroy(uri2);
 
 	if (strstr(buffer1, buffer2) != NULL)
@@ -590,11 +650,11 @@ PG_FUNCTION_INFO_V1(uri_rebase_url);
 Datum
 uri_rebase_url(PG_FUNCTION_ARGS)
 {
-	char   *url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char   *base = TextDatumGetCString(PG_GETARG_DATUM(1));
-	char    buffer[BUFFER_SIZE];
+	char    *url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char    *base = TextDatumGetCString(PG_GETARG_DATUM(1));
 	URI     *h_uri;
 	URI     *b_uri;
+	char    *buffer;
 
 	b_uri = uri_create_str(base, NULL);
 	if (!b_uri)
@@ -613,9 +673,9 @@ uri_rebase_url(PG_FUNCTION_ARGS)
 		uri_destroy(h_uri);
 		PG_RETURN_NULL();
 	}
-	uri_str(h_uri, buffer, BUFFER_SIZE);
-        uri_destroy(h_uri);
         uri_destroy(b_uri);
+	buffer = uriToStr(h_uri);
+        uri_destroy(h_uri);
 
 	PG_RETURN_POINTER((t_uri *) cstring_to_text(buffer));
 }
@@ -688,7 +748,6 @@ Datum
 uri_remotepath_exists(PG_FUNCTION_ARGS)
 {
 	char	*url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char	buffer[BUFFER_SIZE];
 	URI	*uri;
 	bool	exists;
 	struct curl_slist *slist = NULL;
@@ -698,11 +757,8 @@ uri_remotepath_exists(PG_FUNCTION_ARGS)
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
-	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-	}
-	uri_str(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
 
 	/* curl init */
@@ -782,7 +838,6 @@ Datum
 uri_remotepath_size(PG_FUNCTION_ARGS)
 {
 	char		*url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char		buffer[BUFFER_SIZE];
 	URI		*uri;
 	struct curl_slist *slist = NULL;
 	CURL *eh = NULL;        /* libcurl handler */
@@ -792,11 +847,8 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
-	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-	}
-	uri_str(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
 
 	/* curl init */
@@ -869,7 +921,6 @@ Datum
 uri_remotepath_content_type(PG_FUNCTION_ARGS)
 {
 	char		*url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char		buffer[BUFFER_SIZE];
 	URI		*uri;
 	struct curl_slist *slist = NULL;
 	CURL *eh = NULL;        /* libcurl handler */
@@ -879,11 +930,8 @@ uri_remotepath_content_type(PG_FUNCTION_ARGS)
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
-	{
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
-	}
-	uri_str(uri, buffer, BUFFER_SIZE);
         uri_destroy(uri);
 
 	/* curl init */
@@ -1007,10 +1055,11 @@ PG_FUNCTION_INFO_V1(uri_localpath_content_type);
 Datum
 uri_localpath_content_type(PG_FUNCTION_ARGS)
 {
-	char		*url = TextDatumGetCString(PG_GETARG_DATUM(0));
-	char		buffer[BUFFER_SIZE];
-	URI		*uri;
-	char            *mime;
+	char	*url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	URI	*uri;
+	char    *mime;
+	char    *buffer = NULL;
+	size_t  needed; 
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -1018,9 +1067,16 @@ uri_localpath_content_type(PG_FUNCTION_ARGS)
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("failed to parse URI '%s'", url)));
 	}
-	uri_path(uri, buffer, BUFFER_SIZE);
+	needed = uri_path(uri, NULL, 0);
+	if(!needed ||
+		(buffer = (char *) malloc(needed)) == NULL ||
+		uri_path(uri, buffer, needed) != needed)
+	{
+		free(buffer);
+		uri_destroy(uri);
+		PG_RETURN_NULL();
+	}
         uri_destroy(uri);
-
 
 	if (!is_real_file(buffer))
 		PG_RETURN_NULL();
@@ -1108,7 +1164,9 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 	UriParserStateA stateH;
 	UriUriA  h_uri;
 	UriUriA  p_uri;
-	char     buffer[BUFFER_SIZE];
+	int      rc;
+	char     *buffer = NULL;
+	int      needed; 
 
 	stateB.uri = &b_uri;
 	if (uriParseUriA(&stateB, base) != URI_SUCCESS)
@@ -1133,7 +1191,13 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 		PG_RETURN_POINTER((t_uri *) cstring_to_text(url));
 	}
 
-	if (uriToStringA(buffer, &p_uri, BUFFER_SIZE, NULL) != URI_SUCCESS)
+	if ((rc = uriToStringCharsRequiredA(&p_uri, &needed)) != URI_SUCCESS)
+		elog(ERROR, "uriToStringCharsRequiredA() failed: error code %d", rc);
+	needed++;
+
+	if (!needed ||
+                (buffer = (char *) malloc(needed)) == NULL ||
+		uriToStringA(buffer, &p_uri, needed, NULL) != URI_SUCCESS)
 	{
 		uriFreeUriMembersA(&b_uri);
 		uriFreeUriMembersA(&h_uri);
