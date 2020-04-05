@@ -1113,12 +1113,12 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 			 errmsg("failed to parse URI '%s'", url)));
 	}
 
+	/* in case we can't extract a relative path we return the URL as is */
 	if (uriRemoveBaseUriA(&p_uri, &h_uri, &b_uri, URI_FALSE) != URI_SUCCESS)
 	{
 		uriFreeUriMembersA(&b_uri);
 		uriFreeUriMembersA(&h_uri);
-		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("fail to extract relative path from URI \"%s\"", url)));
+		PG_RETURN_POINTER((t_uri *) cstring_to_text(url));
 	}
 
 	if (uriToStringA(buffer, &p_uri, BUFFER_SIZE, NULL) != URI_SUCCESS)
@@ -1127,7 +1127,7 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 		uriFreeUriMembersA(&h_uri);
 		uriFreeUriMembersA(&p_uri);
 		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-			 errmsg("fail to translate relative path to string")));
+			 errmsg("fail to translate relative path from uri to string")));
 	}
 	uriFreeUriMembersA(&b_uri);
 	uriFreeUriMembersA(&h_uri);
