@@ -578,6 +578,20 @@ uri_rebase_url(PG_FUNCTION_ARGS)
 	char    *buffer;
 	size_t  needed;
 
+	/*
+	 * When base is a path only append file:// before,
+	 * uri_rebase only supports URL
+	 */
+	if (base[0] == '/')
+	{
+		char *tmp_str = palloc0(sizeof(char)*(strlen(base)+8));
+		strcpy(tmp_str, "file://");
+		strcat(tmp_str, base);
+		pfree(base);
+		base = palloc0(sizeof(char)*strlen(tmp_str));
+		strcpy(base, tmp_str);
+	}
+
 	b_uri = uri_create_str(base, NULL);
 	if (!b_uri)
 	{
