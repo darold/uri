@@ -1127,16 +1127,16 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 		uriFreeUriMembersA(&h_uri);
 
 		/*
-		 * When url is a path only uriRemoveBaseUriA() do not works,
-		 * try to remove the base directory if we can find it in the url
+		 * When url and base are pathes uriRemoveBaseUriA() do not works,
+		 * try to remove the base directory if it is found in the path.
 		 */
 		for (i = 0; i < strlen(url); i++)
 			if (url[i] != base[i])
 				break;
 		/*
 		 * case when the base directory does not end with a /,
-		 *prevent a leading / to resulting path
-		*/
+		 * prevent a leading / to resulting path
+		 */
 		if (i > 0 && url[i] == '/')
 			i++;
 		url += i;
