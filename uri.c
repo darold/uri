@@ -1115,7 +1115,14 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 	UriUriA  p_uri;
 	int      rc;
 	char     *buffer = NULL;
-	int      needed; 
+	int      needed;
+
+	/*
+	 * With a base starting with file:// and a path only as url
+	 * we need to remove the scheme from the base
+	 */
+	if (url[0] == '/' && strstr(base, "file:///") != NULL)
+		base += 7;
 
 	stateB.uri = &b_uri;
 	if (uriParseUriA(&stateB, base) != URI_SUCCESS)
