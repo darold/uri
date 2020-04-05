@@ -23,7 +23,7 @@
 #include <libpq/pqformat.h>
 
 #include <stdio.h>
-#include "string.h"
+#include <string.h>
 #include <uriparser/Uri.h>
 #include <liburi.h>
 #include <sys/stat.h>
@@ -495,9 +495,12 @@ is_real_file(char *filename)
 	if (dstpath == NULL)
 	{
 		if (errno != ENOENT)
+		{
+			int save_errno = errno;
 			ereport(ERROR, (
-				errmsg("could not get real path of file \"%s\"",
-						filename)));
+				errmsg("could not get real path of file \"%s\": %s",
+						filename, strerror(save_errno))));
+		}
                 exists = false;
 	}
 	else
@@ -506,9 +509,12 @@ is_real_file(char *filename)
 		{
 			free(dstpath);
 			if (errno != ENOENT)
+			{
+				int save_errno = errno;
 				ereport(ERROR, (
 					errmsg("could not stat file \"%s\": %s",
-							filename, strerror(errno))));
+							filename, strerror(save_errno))));
+			}
 			exists = false;
 		}
 		free(dstpath);
@@ -638,18 +644,24 @@ uri_localpath_size(PG_FUNCTION_ARGS)
 	if (dstpath == NULL)
 	{
                 if (errno != ENOENT)
+		{
+			int save_errno = errno;
 			ereport(ERROR, (
 				errmsg("could not get real path of file \"%s\": %s",
-						localpath, strerror(errno))));
+						localpath, strerror(save_errno))));
+		}
 		PG_RETURN_NULL();
 	}
         if (stat(dstpath, &statbuf) < 0)
         {
 		free(dstpath);
                 if (errno != ENOENT)
+		{
+			int save_errno = errno;
 			ereport(ERROR, (
 				errmsg("could not stat file \"%s\": %s",
-						localpath, strerror(errno))));
+						localpath, strerror(save_errno))));
+		}
 		PG_RETURN_NULL();
         }
 	else
