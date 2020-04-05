@@ -119,6 +119,8 @@ SELECT uri_escape(E'Test\nnew line');
 SELECT uri_unescape('Test%0Anew%20line');
 
 -- Rebase a path from a base URI, returns http:///tmp/test_dir/dir1/index.html
+SELECT uri_rebase_url('dir1/index.html', 'http:///tmp/test_dir/');
+-- A base always end with a / any extra path after last / is removed from the base
 SELECT uri_rebase_url('dir1/index.html', 'http:///tmp/test_dir');
 
 -- Relative path, returns:  dir1/file.txt

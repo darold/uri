@@ -94,7 +94,7 @@ Other functions:
 - `uri_path_size(uri)` returns the size of a local path (not symlink) or remote url (local/remote is autodetected).
 - `uri_escape(text)` returns the encoded URL of the given string using [curl_easy_escape()](https://curl.haxx.se/libcurl/c/curl_easy_escape.html).
 - `uri_unescape(text)` returns the decoded URL of the given string using [curl_easy_unescape()](https://curl.haxx.se/libcurl/c/curl_easy_unescape.html).
-- `uri_rebase_url(uri, uri)` returns the url resulting from a uri path rebased on an other uri.
+- `uri_rebase_url(uri, uri)` returns the url resulting from a uri path rebased on an other uri. A base always end with a / any extra path after last / is removed from the base.
 - `uri_get_relative_path(uri, uri)` returns the path of a URI relative to its base.
 
 Normalization
