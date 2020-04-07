@@ -47,6 +47,11 @@ CREATE FUNCTION uri_rebase_url(uri, uri) RETURNS uri AS 'MODULE_PATHNAME' LANGUA
 CREATE FUNCTION uri_escape(text) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
 CREATE FUNCTION uri_unescape(text) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
 CREATE FUNCTION uri_get_relative_path(uri, uri) RETURNS uri AS 'MODULE_PATHNAME' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION uri_remotepath_header(uri, text) RETURNS text AS 'MODULE_PATHNAME' LANGUAGE C STRICT;
+
+CREATE FUNCTION uri_remotepath_header(uri) RETURNS text AS $$
+    SELECT uri_remotepath_header($1, 'text');
+$$ LANGUAGE SQL;
 
 CREATE FUNCTION uri_path_exists(uri) RETURNS bool AS $$
 DECLARE

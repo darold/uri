@@ -15,12 +15,14 @@
  * */
 
 #include <postgres.h>
-#include <common/fe_memutils.h>
 #include <access/hash.h>
-#include <fmgr.h>
+#include <common/fe_memutils.h>
 #include <catalog/pg_type.h>
-#include <utils/builtins.h>
+#include <fmgr.h>
 #include <libpq/pqformat.h>
+#include <utils/builtins.h>
+#include <utils/jsonapi.h>
+#include <utils/varlena.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -37,9 +39,26 @@
 #define FALSE        0
 
 typedef struct varlena t_uri;
+
+/* Storage for curl header fetch */
+struct curl_fetch_st {
+    char *data;
+    size_t size;
+};
+
+/* the null action object used for pure json validation */
+static JsonSemAction nullSemAction =
+{
+	NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL
+};
+
 char *get_filetype(char *filename);
 bool is_real_file(char *filename);
 char *uriToStr(const char *url);
+bool _isspace(char ch);
+bool SplitHeaderLine(char *rawstring, List **namelist);
+bool SplitHeaderField(char *rawstring, List **namelist);
 
 
 /*
@@ -554,7 +573,7 @@ uri_contains(PG_FUNCTION_ARGS)
 	char    *url1 = TextDatumGetCString(PG_GETARG_DATUM(0));
 	char    *url2 = TextDatumGetCString(PG_GETARG_DATUM(1));
 
-	if (strstr(uriToStr(url1), uriToStr(url2)) != NULL)
+	if (strcasestr(uriToStr(url1), uriToStr(url2)) != NULL)
 		PG_RETURN_BOOL(true);
 
 	PG_RETURN_BOOL(false);
@@ -1115,13 +1134,14 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 	UriUriA  p_uri;
 	int      rc;
 	char     *buffer = NULL;
+	char     *found = strcasestr(base, "file:///");
 	int      needed;
 
 	/*
 	 * With a base starting with file:// and a path only as url
 	 * we need to remove the scheme from the base
 	 */
-	if (url[0] == '/' && strstr(base, "file:///") != NULL)
+	if (url[0] == '/' && found != NULL && (found - base) == 0)
 		base += 7;
 
 	stateB.uri = &b_uri;
@@ -1184,3 +1204,358 @@ uri_get_relative_path(PG_FUNCTION_ARGS)
 
 	PG_RETURN_POINTER((t_uri *) cstring_to_text(buffer));
 }
+
+static size_t
+header_callback(char *buffer, size_t size,
+                              size_t nitems, void *userdata)
+{
+	size_t realsize = nitems * size;      /* calculate buffer size */
+	/* cast pointer to fetch data */
+	struct curl_fetch_st *p = (struct curl_fetch_st *) userdata;
+
+	/* increase size of the storage area */
+	p->data = (char *) realloc(p->data, p->size + realsize + 1);
+	if (p->data == NULL)
+	{
+		free(p);
+		ereport(FATAL,
+			(errmsg("failed to expand buffer in curl_callback()")));
+	}
+	/* copy new received buffer to our storage area */
+	memcpy(&(p->data[p->size]), buffer, realsize);
+
+	/* set new size of the data */
+	p->size += realsize;
+
+	/* set null termination */
+	p->data[p->size] = 0;
+
+	return realsize;
+}
+
+PG_FUNCTION_INFO_V1(uri_remotepath_header);
+Datum
+uri_remotepath_header(PG_FUNCTION_ARGS)
+{
+	char		*url = TextDatumGetCString(PG_GETARG_DATUM(0));
+	char		*format = TextDatumGetCString(PG_GETARG_DATUM(1));
+	URI		*uri;
+	struct curl_slist *slist = NULL;
+	struct curl_fetch_st curl_fetch;		/* curl fetch struct */
+	struct curl_fetch_st *fetch = &curl_fetch;	/* pointer to fetch data */
+	CURL *eh = NULL;				/* libcurl handler */
+	CURLcode res ;
+	char err[CURL_ERROR_SIZE];
+	List       *linelist = NULL;
+	StringInfoData str;
+	ListCell   *lc;
+
+	if (format == NULL)
+		format = "text";
+
+	if (pg_strncasecmp(format, "text", 4) != 0 && pg_strncasecmp(format, "json", 4) != 0)
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("unrecognize format '%s', supported format are: 'text' and 'json'", format)));
+
+	uri = uri_create_str(url, NULL);
+	if (!uri)
+		ereport(ERROR,(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("failed to parse URI '%s'", url)));
+        uri_destroy(uri);
+
+	/* init callback data */
+	fetch->data = (char *) calloc(1, sizeof(char));
+	if (fetch->data == NULL) {
+		ereport(FATAL,
+			(errmsg("unable to allocate memory for struct curl_fetch_st.")));
+	}
+	fetch->size = 0;
+
+	/* curl init */
+	curl_global_init (CURL_GLOBAL_ALL);
+	/* get an easy handle */
+	if ((eh = curl_easy_init ()) == NULL)
+	{
+		ereport(FATAL,
+			(errmsg("could not instantiate libcurl using curl_easy_init ()")));
+	}
+	else
+	{
+          /* set the error buffer */
+          curl_easy_setopt (eh, CURLOPT_ERRORBUFFER, err);
+          /* do not install signal  handlers in thread context */
+          curl_easy_setopt (eh, CURLOPT_NOSIGNAL, 1);
+          /* Force HTTP 1.0 version */
+          curl_easy_setopt (eh, CURL_HTTP_VERSION_1_0, TRUE);
+          /* Do not fail on errors: use to prevent breaked download */
+	  curl_easy_setopt (eh, CURLOPT_FAILONERROR, FALSE);
+          /* follow location (303 MOVED) */
+          curl_easy_setopt (eh, CURLOPT_FOLLOWLOCATION, TRUE);
+          /* only follow MAXREDIR redirects */
+          curl_easy_setopt (eh, CURLOPT_MAXREDIRS, MAXREDIR);
+          /* overwrite the Pragma: no-cache HTTP header */
+          slist = curl_slist_append(slist, "pragma:");
+          curl_easy_setopt (eh, CURLOPT_HTTPHEADER, slist);
+          /* set the url */
+          curl_easy_setopt (eh, CURLOPT_URL, url);
+          /* set the libcurl transfer timeout to max CURL_TIMEOUT second for header */
+          curl_easy_setopt (eh, CURLOPT_TIMEOUT, CURL_TIMEOUT);
+          /* Suppress error: SSL certificate problem, verify that the CA cert is OK */
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYHOST, FALSE);
+          curl_easy_setopt (eh, CURLOPT_SSL_VERIFYPEER, FALSE);
+	  /* only get the header to check size and content type */
+	  curl_easy_setopt (eh, CURLOPT_NOBODY, TRUE);
+	  /* add header callback function */
+	  curl_easy_setopt (eh, CURLOPT_HEADERFUNCTION, header_callback);
+	  /* pass fetch struct pointer */
+	  curl_easy_setopt (eh, CURLOPT_HEADERDATA, (void *) fetch);
+	  /* set default user agent */
+	  curl_easy_setopt(eh, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	}
+
+	res = curl_easy_perform (eh);
+	if (res == CURLE_OK)
+	{
+		long http_code = 0;
+		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_code);
+		if (http_code >= 400)
+		{
+			ereport(WARNING,
+				(errmsg("Can not get header of remote object \"%s\", HTTP code returned: %lu",
+					url, http_code)));
+			curl_global_cleanup ();
+			PG_RETURN_NULL();
+		}
+	}
+	curl_global_cleanup ();
+
+	/* check data received */
+	if (fetch->data == NULL || strlen(fetch->data) == 0)
+	{
+		free(fetch->data);
+		PG_RETURN_NULL();
+	}
+
+	/* Split the header into line removing \r\n */
+	if (!SplitHeaderLine(fetch->data, &linelist))
+	{
+		free(fetch->data);
+		/* syntax error in name list */
+		ereport(ERROR,
+			(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+			 errmsg("can not get a list of line from header output")));
+	}
+
+	if (list_length(linelist) == 0)
+		PG_RETURN_NULL();
+
+	initStringInfo(&str);
+
+	if (pg_strncasecmp(format, "text", 4) == 0)
+	{
+		foreach (lc, linelist)
+		{
+			const char *line = (const char *) lfirst(lc);
+			appendStringInfo(&str, "%s\n", line);
+		}
+		free(fetch->data);
+		list_free(linelist);
+		PG_RETURN_TEXT_P(cstring_to_text(str.data));
+	}
+	else
+	{
+		bool first = true;
+
+		/* The fist line is the response header, append a field name */
+		appendStringInfo(&str, "{\"Response\":");
+
+		/* format to json */
+		foreach (lc, linelist)
+		{
+			const char *line = (const char *) lfirst(lc);
+			List       *fieldlist = NULL;
+
+			/* special case for the HTTP response */
+			if (first)
+			{
+				appendStringInfo(&str, "\"%s\"", line);
+				first = false;
+				continue;
+			}
+
+			/* split fieldname and value */
+			if (!SplitHeaderField((char *)line, &fieldlist))
+				/* syntax error in name list */
+				ereport(ERROR,
+					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+					 errmsg("can not extract fieldname/values from header output")));
+			if (list_length(fieldlist) >= 1)
+				appendStringInfo(&str, ",\"%s\":", (char *) linitial(fieldlist));
+			if (list_length(fieldlist) >= 2)
+			{
+				char *value = (char *) lsecond(fieldlist);
+				if (value[0] != '"')
+				{
+					int i;
+					/*
+					 * replace any double quote by a single
+					 * quote to avoid json syntax error
+					 */
+					for (i = 0; i < strlen(value); i++)
+						if (value[i] == '"')
+							value[i] = '\'';
+					appendStringInfo(&str, "\"%s\"", value);
+				}
+				else
+					appendStringInfoString(&str, value);
+			}
+			else
+				appendStringInfo(&str, "\"\"");
+
+			list_free(fieldlist);
+		}
+		list_free(linelist);
+		free(fetch->data);
+		appendStringInfoChar(&str, '}');
+
+		if (str.data)
+		{
+			text       *result = cstring_to_text(str.data);
+			JsonLexContext *lex;
+
+			/* validate it */
+			lex = makeJsonLexContext(result, false);
+			pg_parse_json(lex, &nullSemAction);
+
+			PG_RETURN_TEXT_P(result);
+		}
+		else
+			PG_RETURN_NULL();
+	}
+}
+
+/* Same as scanner_isspace() but we hve removed the \r in the list */
+bool
+_isspace(char ch)
+{
+        /* This must match scan.l's list of {space} characters */
+        if (ch == ' ' ||
+                ch == '\t' ||
+                ch == '\n' ||
+                ch == '\r' ||
+                ch == '\f')
+                return true;
+        return false;
+}
+
+bool
+SplitHeaderLine(char *rawstring, List **namelist)
+{
+	char       *nextp = rawstring;
+	bool       done = false;
+	char       separator = '\r';
+
+	*namelist = NIL;
+
+	while (_isspace(*nextp))
+		nextp++;                                /* skip leading whitespace */
+
+	if (*nextp == '\0')
+		return true;                    /* allow empty string */
+
+	/* At the top of the loop, we are at start of a new identifier. */
+	do
+	{
+		char       *curname;
+		char       *endp;
+
+		curname = nextp;
+		while (*nextp && *nextp != separator)
+			nextp++;
+		endp = nextp;
+
+		if (*nextp == separator)
+		{
+			nextp++;
+			while (_isspace(*nextp))
+				nextp++;                /* skip leading whitespace for next */
+			/* we expect another name, so done remains false */
+		}
+		else if (*nextp == '\0')
+			done = true;
+		else
+		{
+			return false;           /* invalid syntax */
+		}
+
+		/* Now safe to overwrite separator with a null */
+		*endp = '\0';
+
+		/*
+		 * Finished isolating current name --- add it to list
+		 */
+		if (strlen(curname) > 0)
+			*namelist = lappend(*namelist, curname);
+
+		/* Loop back if we didn't reach end of string */
+	} while (!done);
+
+	return true;
+}
+
+bool
+SplitHeaderField(char *rawstring, List **namelist)
+{
+	char       *nextp = rawstring;
+	bool       done = false;
+	char       separator = ':';
+
+	*namelist = NIL;
+
+	while (_isspace(*nextp))
+		nextp++;                                /* skip leading whitespace */
+
+	if (*nextp == '\0')
+		return true;                    /* allow empty string */
+
+	/* At the top of the loop, we are at start of a new identifier. */
+	do
+	{
+		char       *curname;
+		char       *endp;
+
+		curname = nextp;
+		while (*nextp && *nextp != separator)
+			nextp++;
+		endp = nextp;
+
+		if (*nextp == separator)
+		{
+			nextp++;
+			while (_isspace(*nextp))
+				nextp++;                /* skip leading whitespace for next */
+			/* other information is the value and as it can contain : we change the separator */
+			separator = '\r';
+		}
+		else if (*nextp == '\0')
+			done = true;
+		else
+		{
+			return false;           /* invalid syntax */
+		}
+
+		/* Now safe to overwrite separator with a null */
+		*endp = '\0';
+
+		/*
+		 * Finished isolating current name --- add it to list
+		 */
+		if (strlen(curname) > 0)
+			*namelist = lappend(*namelist, curname);
+
+		/* Loop back if we didn't reach end of string */
+	} while (!done);
+
+	return true;
+}
+

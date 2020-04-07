@@ -130,3 +130,9 @@ SELECT uri_rebase_url('dir1/index.html', '/tmp/test_dir/');
 SELECT uri_get_relative_path('file:///tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');
 SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', '/tmp/test_dir');
 SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');
+
+-- Get HTTP header as text
+SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html');
+SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text');
+-- Get HTTP header as json
+SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json');

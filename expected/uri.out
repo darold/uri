@@ -475,3 +475,39 @@ SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', 'file:///tmp/test_di
  dir1/file.txt
 (1 row)
 
+-- Get HTTP header as text
+SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html');
+                uri_remotepath_header                 
+------------------------------------------------------
+ HTTP/1.1 200 OK                                     +
+ Date: Tue, 07 Apr 2020 09:22:56 GMT                 +
+ Content-Type: text/html                             +
+ Server: Apache                                      +
+ Accept-Ranges: bytes                                +
+ Vary: Accept-Encoding                               +
+ Set-Cookie: SERVERID102299=22019|XoxGc|XoxGc; path=/+
+ X-IPLB-Instance: 29003                              +
+ 
+(1 row)
+
+SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text');
+                uri_remotepath_header                 
+------------------------------------------------------
+ HTTP/1.1 200 OK                                     +
+ Date: Tue, 07 Apr 2020 09:22:57 GMT                 +
+ Content-Type: text/html                             +
+ Server: Apache                                      +
+ Accept-Ranges: bytes                                +
+ Vary: Accept-Encoding                               +
+ Set-Cookie: SERVERID102299=22019|XoxGd|XoxGd; path=/+
+ X-IPLB-Instance: 29000                              +
+ 
+(1 row)
+
+-- Get HTTP header as json
+SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json');
+                                                                                                                 uri_remotepath_header                                                                                                                 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {"Response":"HTTP/1.1 200 OK","Date":"Tue, 07 Apr 2020 09:22:57 GMT","Content-Type":"text/html","Server":"Apache","Accept-Ranges":"bytes","Vary":"Accept-Encoding","Set-Cookie":"SERVERID102299=22019|XoxGd|XoxGd; path=/","X-IPLB-Instance":"29002"}
+(1 row)
+
