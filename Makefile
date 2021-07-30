@@ -6,6 +6,8 @@ OBJS = uri.o
 EXTVER=$(shell grep "version" uri.control | awk -F'=' '{print $$2};' | sed "s/[ ']//g")
 EXTENSION = uri
 DATA = uri--${EXTVER}.sql
+DATA = $(wildcard $(EXTENSION)--*.sql)
+
 
 REGRESS = uri
 
