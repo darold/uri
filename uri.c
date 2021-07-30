@@ -14,15 +14,20 @@
  *
  * */
 
-#include <postgres.h>
-#include <access/hash.h>
-#include <common/fe_memutils.h>
-#include <catalog/pg_type.h>
-#include <fmgr.h>
-#include <libpq/pqformat.h>
-#include <utils/builtins.h>
-#include <utils/jsonapi.h>
-#include <utils/varlena.h>
+#include "postgres.h"
+#include "access/hash.h"
+#include "common/fe_memutils.h"
+#include "catalog/pg_type.h"
+#include "fmgr.h"
+#include "libpq/pqformat.h"
+#include "utils/builtins.h"
+#if PG_VERSION_NUM >= 130000
+#include "common/jsonapi.h"
+#include "utils/jsonfuncs.h"
+#else
+#include "utils/jsonapi.h"
+#endif
+#include "utils/varlena.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -47,11 +52,13 @@ struct curl_fetch_st {
 };
 
 /* the null action object used for pure json validation */
+/*
 static JsonSemAction nullSemAction =
 {
 	NULL, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL
 };
+*/
 
 char *get_filetype(char *filename);
 bool is_real_file(char *filename);

@@ -132,7 +132,7 @@ SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', '/tmp/test_dir');
 SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', 'file:///tmp/test_dir');
 
 -- Get HTTP header as text
-SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html');
-SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text');
+SELECT regexp_match(uri_remotepath_header('http://pgcluu.darold.net/index.html'), 'Content-Type: [^\s]+', 'i');
+SELECT regexp_match(uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text'), 'Content-Type: [^\s]+', 'i');
 -- Get HTTP header as json
-SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json');
+SELECT json_extract_path_text(uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json')::json, 'content-type');
