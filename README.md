@@ -17,14 +17,20 @@ uri columns can be indexed using btree and hash indexes.
 Requirement
 -----------
 
-You will need git, automake, autoconf and libtool to install liburi. The uri extension also need
-libcurl-dev: `apt-get install libcurl4-openssl-dev` or `yum install libcurl-openssl-devel`.
+You will need git, automake, autoconf and libtool to install liburi:
+`apt-get install git automake autoconf libtool` or `yum install git automake autoconf libtool`
+
+
+The uri extension also need libcurl-dev:
+`apt-get install libcurl4-openssl-dev` or `yum install libcurl-openssl-devel`
 
 You need to install [liburi](https://github.com/bbcarchdev/liburi) to be able to compile the uri
 extension. liburi is a simple interface for parsing URIs based on [uriparser](http://uriparser.sourceforge.net/).
-To install it:
+Use `apt-get install liburiparser1 liburiparser-dev` or `yum install uriparser uriparser-devel`.
 
-	git clone git://github.com/bbcarchdev/liburi.git
+To install liburi:
+
+	git clone https://github.com/bbcarchdev/liburi.git
 	cd liburi
 	git submodule update --init --recursive
 	autoreconf -i
