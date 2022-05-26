@@ -294,9 +294,9 @@ local_content_type  | text/plain; charset=us-ascii
 remote_content_type | text/html
 lpath_content_type  | text/plain; charset=us-ascii
 rpath_content_type  | image/png
-local_size          | 793
-remote_size         | 5098
-lpath_size          | 793
+local_size          | 724
+remote_size         | 5308
+lpath_size          | 724
 rpath_size          | 101596
 
 \x off
@@ -476,38 +476,22 @@ SELECT uri_get_relative_path('/tmp/test_dir/dir1/file.txt', 'file:///tmp/test_di
 (1 row)
 
 -- Get HTTP header as text
-SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html');
-                uri_remotepath_header                 
-------------------------------------------------------
- HTTP/1.1 200 OK                                     +
- Date: Tue, 07 Apr 2020 09:22:56 GMT                 +
- Content-Type: text/html                             +
- Server: Apache                                      +
- Accept-Ranges: bytes                                +
- Vary: Accept-Encoding                               +
- Set-Cookie: SERVERID102299=22019|XoxGc|XoxGc; path=/+
- X-IPLB-Instance: 29003                              +
- 
+SELECT regexp_match(uri_remotepath_header('http://pgcluu.darold.net/index.html'), 'Content-Type: [^\s]+', 'i');
+         regexp_match         
+------------------------------
+ {"content-type: text/html;"}
 (1 row)
 
-SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text');
-                uri_remotepath_header                 
-------------------------------------------------------
- HTTP/1.1 200 OK                                     +
- Date: Tue, 07 Apr 2020 09:22:57 GMT                 +
- Content-Type: text/html                             +
- Server: Apache                                      +
- Accept-Ranges: bytes                                +
- Vary: Accept-Encoding                               +
- Set-Cookie: SERVERID102299=22019|XoxGd|XoxGd; path=/+
- X-IPLB-Instance: 29000                              +
- 
+SELECT regexp_match(uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text'), 'Content-Type: [^\s]+', 'i');
+         regexp_match         
+------------------------------
+ {"content-type: text/html;"}
 (1 row)
 
 -- Get HTTP header as json
-SELECT uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json');
-                                                                                                                 uri_remotepath_header                                                                                                                 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- {"Response":"HTTP/1.1 200 OK","Date":"Tue, 07 Apr 2020 09:22:57 GMT","Content-Type":"text/html","Server":"Apache","Accept-Ranges":"bytes","Vary":"Accept-Encoding","Set-Cookie":"SERVERID102299=22019|XoxGd|XoxGd; path=/","X-IPLB-Instance":"29002"}
+SELECT json_extract_path_text(uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json')::json, 'content-type');
+ json_extract_path_text 
+------------------------
+ text/html
 (1 row)
 
