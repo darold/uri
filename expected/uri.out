@@ -294,9 +294,9 @@ local_content_type  | text/plain; charset=us-ascii
 remote_content_type | text/html
 lpath_content_type  | text/plain; charset=us-ascii
 rpath_content_type  | image/png
-local_size          | 724
+local_size          | 745
 remote_size         | 5308
-lpath_size          | 724
+lpath_size          | 745
 rpath_size          | 101596
 
 \x off
@@ -495,3 +495,8 @@ SELECT json_extract_path_text(uri_remotepath_header('http://pgcluu.darold.net/in
  text/html
 (1 row)
 
+-- Non hierarchical URI are not supported by this extension
+SELECT uri_get_str('mailto:gilles@domain.com') as string;
+ERROR:  non-hierarchical URI are not supported: mailto:gilles@domain.com"
+LINE 1: SELECT uri_get_str('mailto:gilles@domain.com') as string;
+                           ^

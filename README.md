@@ -13,35 +13,29 @@ and `<@`.
 
 uri columns can be indexed using btree and hash indexes.
 
+Only hierarchical URI are supported by this extension. `http`, `file`, `ssh`,
+`telnet` and `ftp` scheme are hierarchical URI; `mailto`, `urn`, `tag` and `about`
+aren't.
 
 Requirement
 -----------
 
-You will need git, automake, autoconf and libtool to install liburi:
-`apt-get install git automake autoconf libtool` or `yum install git automake autoconf libtool`
+The uri extension needs libcurl-dev to be installed:
+	apt-get install libcurl4-openssl-dev
+or
+	yum install libcurl-openssl-devel
 
-
-The uri extension also need libcurl-dev:
-`apt-get install libcurl4-openssl-dev` or `yum install libcurl-openssl-devel`
-
-You need to install [liburi](https://github.com/bbcarchdev/liburi) to be able to compile the uri
-extension. liburi is a simple interface for parsing URIs based on [uriparser](http://uriparser.sourceforge.net/).
-Use `apt-get install liburiparser1 liburiparser-dev` or `yum install uriparser uriparser-devel`.
-
-To install liburi:
-
-	git clone https://github.com/bbcarchdev/liburi.git
-	cd liburi
-	git submodule update --init --recursive
-	autoreconf -i
-	./configure --prefix=/usr/local/liburi
-	make
-	make check
-	sudo make install
+You need to install [uriparser](http://uriparser.sourceforge.net/). Use
+	apt-get install liburiparser1 liburiparser-dev
+or
+	yum install uriparser uriparser-devel
 
 Extraction of mime type from a local file is done with the use of [libmagic](http://www.darwinsys.com/file/). libmagic
 is found with all Linux or BSD like distributions and comes with the `file` command, you will be able to install the
-development binary package using `apt-get install libmagic-dev` or `yum install file-devel` for example.
+development binary package using
+	apt-get install libmagic-dev
+or
+	yum install file-devel
 
 
 Building
@@ -60,7 +54,6 @@ To test the extension run:
 To use the extension in your database execute:
 
 	CREATE EXTENSION uri;
-
 
 Functions
 ---------
@@ -197,7 +190,6 @@ variations in their common syntax components:
 	INSERT INTO example VALUES (4, 'telnet://192.0.2.16:80/');
 	INSERT INTO example VALUES (5, 'file:///etc/postgresql/9.4/main/postgresql.conf.dist');
 
-
 Indexes
 -------
 
@@ -224,6 +216,12 @@ License
 
 This extension is free software distributed under the PostgreSQL Licence.
 
-	Copyright (c) 2015-2020, Gilles Darold
+- Copyright (c) 2015-2022, Gilles Darold
 
+Some parts of the code are original code from liburi licensed under the
+terms of the Apache License, Version 2.0. The code have been embeded to
+the extension to avoid dependencies requiring compilation from sources.
+liburi can be found here: [https://github.com/bbcarchdev/liburi](https://github.com/bbcarchdev/liburi)
 
+- Copyright (c) 2012 Mo McRoberts
+- Copyright (c) 2014-2017 BBC

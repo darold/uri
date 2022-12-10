@@ -136,3 +136,7 @@ SELECT regexp_match(uri_remotepath_header('http://pgcluu.darold.net/index.html')
 SELECT regexp_match(uri_remotepath_header('http://pgcluu.darold.net/index.html', 'text'), 'Content-Type: [^\s]+', 'i');
 -- Get HTTP header as json
 SELECT json_extract_path_text(uri_remotepath_header('http://pgcluu.darold.net/index.html', 'json')::json, 'content-type');
+
+-- Non hierarchical URI are not supported by this extension
+SELECT uri_get_str('mailto:gilles@domain.com') as string;
+
