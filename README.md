@@ -21,20 +21,29 @@ Requirement
 -----------
 
 The uri extension needs libcurl-dev to be installed:
+
 	apt-get install libcurl4-openssl-dev
+
 or
+
 	yum install libcurl-openssl-devel
 
 You need to install [uriparser](http://uriparser.sourceforge.net/). Use
+
 	apt-get install liburiparser1 liburiparser-dev
+
 or
+
 	yum install uriparser uriparser-devel
 
 Extraction of mime type from a local file is done with the use of [libmagic](http://www.darwinsys.com/file/). libmagic
 is found with all Linux or BSD like distributions and comes with the `file` command, you will be able to install the
 development binary package using
+
 	apt-get install libmagic-dev
+
 or
+
 	yum install file-devel
 
 
@@ -218,8 +227,8 @@ This extension is free software distributed under the PostgreSQL Licence.
 
 - Copyright (c) 2015-2022, Gilles Darold
 
-Some parts of the code are original code from liburi licensed under the
-terms of the Apache License, Version 2.0. The code have been embeded to
+Some parts of the code are original code copied from liburi licensed under
+the terms of the Apache License, Version 2.0. The code have been embeded to
 the extension to avoid dependencies requiring compilation from sources.
 liburi can be found here: [https://github.com/bbcarchdev/liburi](https://github.com/bbcarchdev/liburi)
 

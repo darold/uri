@@ -1,4 +1,4 @@
-Copyright (c) 2015-2020, Gilles Darold
+Copyright (c) 2015-2022, Gilles Darold
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement
@@ -15,3 +15,12 @@ TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND Gilles Darold
 HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS,
 OR MODIFICATIONS.
+
+Some parts of the code are original code copied from liburi licensed under the
+terms of the Apache License, Version 2.0. The code have been embeded to the uri
+extension to avoid dependencies requiring compilation from sources.
+
+  Copyright (c) 2012 Mo McRoberts
+  Copyright (c) 2014-2017 BBC
+
+liburi can be found here: https://github.com/bbcarchdev/liburi
