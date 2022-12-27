@@ -1,0 +1,129 @@
+Sat Dec 10 2022 - Version 1.2
+
+  - Remove dependencies to liburi by embedding the necessary code into the
+    uri extension.
+  - Add a .gitignore file
+  - Add apt/yum command to install required packages. Thanks to sourcenux
+    for the report.
+  - Add installation of extension upgrade scripts.
+  - Add compatibility with PostgreSQL 13
+  - Improve regression tests to have constant returned from headers
+  - Update documentation about new function
+  - Add uri_remotepath_header(uri,text) function to get the HTTP header
+    from a remote URL. Second argument is the output format, can be 'text'
+    or 'json'.
+  - Update regressions test ans year in copyrigth.
+  - With uri_get_relative_path(url, base) if base is starting with file:///
+    and a path is specified as url we need to remove the scheme from the base.
+
+  - With uri_rebase_url(url,base) when base is an absolute path append file://
+    before the call to uri_rebase because it only supports URL. Ex:
+    
+    SELECT uri_rebase_url('dir1/index.html', '/tmp/test_dir/');
+                uri_rebase_url
+    --------------------------------------
+     file:///tmp/test_dir/dir1/index.html
+
+  - When a url to rebase is a path only, uriRemoveBaseUriA() do not works,
+    try to remove the base directory if we can find it in the url. Ex:
+    
+                    uri_rebase_url
+    -----------------------------------------------
+     http://localhost/tmp/test_dir/dir1/index.html
+  - Add information about base that always end with a / and that any extra path
+    after last / is automaticcaly removed from the base.
+  - Rationalize code and add error reports when necessary in privious patch.
+  - Remove limitation on URL size.
+  - Fix compilation error with PG12 and unsafe use of errno
+  - In case we can't extract a relative path through call to uriRemoveBaseUriA()
+  - we return the URL as is rather than throwing an error.
+  - Set cast from/to uri as implicit
+  - Change privilege of README.md file
+  - Add regression test for uri_get_relative_path()
+  - Move some declaration and fix missing free.
+  - Rewrite uri_get_relative_path() as a C function.
+  - Remove urn: scheme example.
+  - Add new function uri_get_relative_path(url uri, base uri) used to return
+    the path of a URI relative to its base.
+  - Grab extension version dynamically from uri.control.
+  - Function uri_localpath_size() called on symlink now reports the target
+    file size.
+  - Function is_real_file() now follows symlink to be sure that the file exist.
+  - Adapt path to liburi-config "automatically".
+  - Runs regression test using: make installcheck
+  - Remove non= more supported URI scheme from example.
+  - Make use of PGXS the default for Makefile.
+  - Update test, new version of liburi/uriparser do not support news:, urn:,
+    mailto: and tel: scheme.
+  - Fix uri_rebase_url() from partial work.
+
+Sat Jun 8 2019 - Version 1.1
+
+  - Rename function uri_rebase() into uri_rebase_url() to avoid a conflict
+    with new version of liburi.
+  - Update installation instruction.
+  - Fix undefined TRUE/FALSE constants with pg11. Thanks to Georgios Pavlos
+    for the report.
+  - Force compilation using pg_config and PGXS.
+  - Add description of functions return type.
+  - Disable uri_recv() and uri_send() as there is no binary storage at now.
+  - Remove call to search_str() a simple use of strstr() is enough. Thanks
+    to Julien Rouhaud for the report.
+  - Fix call to sizeof()
+  - Fix potential use of uninitialized value content_type when calling
+    cstring_to_text().
+  - Add regression test for uri_escape/uri_unescape functions.
+  - Add two new functions:
+      - uri_escape(text) returns the encoded URL of the given string
+      - uri_unescape(text) returns the decoded URL of the given string
+  - Encode/decode is now done using function curl_easy_escape() and
+    rl_easy_unescape().
+  - Fix all compilation warning
+  - Change some regression tests.
+  - Fix some code formatting.
+  - Update regression test result with change to libmagic.
+  - Remove statement called after ereport() they are no more used.
+  - Remove use of file command to find the mime content-type of a local file,
+    uri.c now use libmagic to found the content-type.
+  - Do not report error when remote content_type or size is not sent and
+    result is CURL_OK, function must simply return NULL. Otherwise the
+    function return NULL but a warning is displayed with the error string.
+  - Fix META.json for pgxn.org
+  - Add test file test/test.sql and expected result test/expected/test.out.
+  - Fix uri_remotepath_exists() that was returning an error with 404
+    http return code instead of silently returning false.
+  - Remove last newline charater from the result of the file command.
+  - Fix return value of the uri_hash() function.
+  - Fix operator = and <> that was missing COMMUTATOR and JOIN attributs.
+  - Add more documentation about normalization and some other details.
+
+Thu Dec 14 2017 - Version 1.0
+
+  - Replace text README with a markdown README.md file.
+  - Update function description about symlink restriction.
+  - When the file is a symlink, return an error with uri_localpath_size() call
+    and return false with uri_localpath_exists(). Using remote file this
+    information is not available.
+  - Fix tests (exists, size, content-type) on remote uri and report any error.
+  - Fix some issue on function uri_path_.* and update documentation.
+  - Add uri_remotepath_content_type(), uri_localpath_content_type() and
+    uri_path_content_type() function to get content type from a remote file or
+    output or file -b command for local file.
+  - Add generic function uri_path_exists() and uri_path_size() auto detecting
+    if uri are local or remote.
+  - Add uri_remotepath_exists() and uri_remotepath_size() to get those
+    information on remote file through the use of libcurl.
+  - Add implicit cast between uri and varchar.
+  - Remove unused definition.
+  - Add PG_RETURN_NULL() in error with user functions.
+  - Add uri_localpath_size(uri) function to return the size of the local file.
+  - Add function uri_rebase() to parse a relative URI and resolve it against an
+    absolute base URI. Ex:
+      uri_rebase(''switch?toggle=1'', 'http://example.com/sample')
+    returns  http://example.com/switch?toggle=1.
+  - Remove call to errno in output error message.
+  - Add information about the necessary library: liburi.
+
+Tue Apr 21 2015
+
+- first commit
