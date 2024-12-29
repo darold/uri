@@ -2363,14 +2363,20 @@ uri_remotepath_header(PG_FUNCTION_ARGS)
 		free(fetch->data);
 		appendStringInfoChar(&str, '}');
 
+		/* validate json */
 		if (str.data)
 		{
 			text       *result = cstring_to_text(str.data);
+#if PG_VERSION_NUM < 170000
 			JsonLexContext *lex;
-
-			/* validate it */
 			lex = makeJsonLexContext(result, false);
 			pg_parse_json(lex, &nullSemAction);
+#else
+			JsonLexContext lex;
+
+			makeJsonLexContext(&lex, result, false);
+			pg_parse_json(&lex, &nullSemAction);
+#endif
 
 			PG_RETURN_TEXT_P(result);
 		}
