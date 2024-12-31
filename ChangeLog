@@ -1,3 +1,9 @@
+Tue Dec 31 2024 - Version 1.3
+
+  - Fix compilation error with PG 17. Thanks to Michael Misiewicz for the
+    report.
+  - Fix regression tests expected result for uri_remotepath_size() method.
+
 Sat Dec 10 2022 - Version 1.2
 
   - Remove dependencies to liburi by embedding the necessary code into the
