@@ -217,15 +217,14 @@ or the table if the index is not used.
 Authors
 -------
 
-Gilles Darold
-gilles@darold.net
+* Gilles Darold
 
 License
 -------
 
 This extension is free software distributed under the PostgreSQL Licence.
 
-- Copyright (c) 2015-2022, Gilles Darold
+- Copyright (c) 2015-2025, Gilles Darold
 
 Some parts of the code are original code copied from liburi licensed under
 the terms of the Apache License, Version 2.0. The code have been embeded to
