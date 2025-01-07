@@ -1754,7 +1754,7 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 	CURL *eh = NULL;        /* libcurl handler */
 	CURLcode res ;
 	char err[CURL_ERROR_SIZE];
-	double filesize = 0.0;
+	curl_off_t filesize;
 
 	uri = uri_create_str(url, NULL);
 	if (!uri)
@@ -1811,8 +1811,8 @@ uri_remotepath_size(PG_FUNCTION_ARGS)
 			curl_global_cleanup ();
 			PG_RETURN_NULL();
 		}
-		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &filesize);
-		if ((res != CURLE_OK) || (filesize < 0.0))
+		res = curl_easy_getinfo(eh, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &filesize);
+		if ((res != CURLE_OK) || (filesize < 0))
 		{
 			if (res != CURLE_OK)
 				ereport(WARNING,
