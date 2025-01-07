@@ -69,9 +69,9 @@ SELECT
 	uri_remotepath_content_type('http://ora2pg.darold.net/index.html') as remote_content_type,
 	uri_path_content_type('/etc/fstab') as lpath_content_type,
 	uri_path_content_type('https://avatars2.githubusercontent.com/u/538862?s=40&v=4') as rpath_content_type,
-	uri_localpath_size('/etc/fstab') as local_size,
+	uri_localpath_size('PG_VERSION') as local_size,
 	uri_remotepath_size('http://ora2pg.darold.net/index.html') as remote_size,
-	uri_path_size('/etc/fstab') as lpath_size,
+	uri_path_size('PG_VERSION') as lpath_size,
 	uri_path_size('http://www.darold.net/confs/pgday_2017_partitionnement.pdf') as rpath_size;
 \x off
 
