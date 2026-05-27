@@ -19,7 +19,6 @@ jobs:
           - 16
           - 17
           - 18
-          - 19
 
     env:
       PGVERSION: ${{ matrix.pgversion }}
