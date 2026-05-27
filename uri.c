@@ -208,6 +208,8 @@ uri_range_dup(const UriTextRangeA *range)
 		return NULL;
 
 	len = range->afterLast - range->first;
+	if (len == (size_t)-1)	/* prevent len+1 integer overflow in malloc */
+		return NULL;
 	out = (char *) malloc(len + 1);
 	if (!out)
 		return NULL;
