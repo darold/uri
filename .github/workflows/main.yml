@@ -31,7 +31,7 @@ jobs:
 
     - name: install pg and required libraries
       run: |
-        sudo apt install liburiparser1 liburiparser-dev libmagic-dev
+        sudo apt install liburiparser1 liburiparser-dev libmagic-dev libcurl4-openssl-dev libcurl
         sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -v $PGVERSION -p -i
         sudo -u postgres createuser -s "$USER"
 
