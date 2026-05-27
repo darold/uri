@@ -759,8 +759,7 @@ uri_rebase_url(PG_FUNCTION_ARGS)
 	if (base[0] == '/')
 	{
 		char *tmp_str = palloc0(sizeof(char)*(strlen(base)+8));
-		strcpy(tmp_str, "file://");
-		strcat(tmp_str, base);
+		snprintf(tmp_str, strlen(base)+8, "file://%s", base);
 		pfree(base);
 		base = tmp_str;
 	}
@@ -1343,6 +1342,10 @@ header_callback(char *buffer, size_t size,
 	size_t realsize = nitems * size;      /* calculate buffer size */
 	/* cast pointer to fetch data */
 	struct curl_fetch_st *p = (struct curl_fetch_st *) userdata;
+
+	/* guard against integer overflow and excessively large responses */
+	if (realsize > (SIZE_MAX - p->size - 1))
+		return 0;
 
 	/* increase size of the storage area */
 	p->data = (char *) realloc(p->data, p->size + realsize + 1);
