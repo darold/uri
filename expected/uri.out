@@ -497,6 +497,6 @@ SELECT json_extract_path_text(uri_remotepath_header('http://pgcluu.darold.net/in
 
 -- Non hierarchical URI are not supported by this extension
 SELECT uri_get_str('mailto:gilles@domain.com') as string;
-ERROR:  non-hierarchical URI are not supported: mailto:gilles@domain.com"
+ERROR:  non-hierarchical URI are not supported: "mailto:gilles@domain.com"
 LINE 1: SELECT uri_get_str('mailto:gilles@domain.com') as string;
                            ^
