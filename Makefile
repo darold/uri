@@ -11,7 +11,7 @@ DATA = $(wildcard $(EXTENSION)--*.sql)
 PG_CONFIG = pg_config
 
 # Extract the major version number
-PG_MAJORVERSION := $(shell $(PG_CONFIG) --version | sed -E -e 's/^[a-zA-Z ]*//' -e 's/\..*//' -e 's/[a-z]+//')
+PG_MAJORVERSION := $(shell $(PG_CONFIG) --version | sed -E -e 's/^[a-zA-Z ]*//' -e 's/\..*//')
 
 REGRESS = uri
 # Check if major version is greater than or equal to 18 change test output
