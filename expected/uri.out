@@ -262,18 +262,18 @@ SELECT
 	uri_is_absolute_path('index.html') as abs_path_false,
 	uri_localpath_exists('/etc/fstab') as local_exists_true,
 	uri_localpath_exists('/etc/fstab.no') as local_exists_false,
-	uri_remotepath_exists('http://ora2pg.darold.net/index.html') as remotepath_true,
-	uri_remotepath_exists('http://ora2pg.darold.net/index2.html') as remotepath_false,
-	uri_path_exists('http://ora2pg.darold.net/index.html') as rpath_exists_true,
-	uri_path_exists('http://ora2pg.darold.net/index2.html') as rpath_exists_false,
+	uri_remotepath_exists('https://www.darold.net/uri_test.txt') as remotepath_true,
+	uri_remotepath_exists('https://www.darold.net/uri_test2.txt') as remotepath_false,
+	uri_path_exists('https://www.darold.net/uri_test.txt') as rpath_exists_true,
+	uri_path_exists('https://www.darold.net/uri_test2.txt') as rpath_exists_false,
 	uri_path_exists('/etc/fstab') as lpath_exists_true,
 	uri_path_exists('/etc/motd') as lpath_exists_false, -- Symlink
 	uri_localpath_content_type('/etc/fstab') as local_content_type,
-	uri_remotepath_content_type('http://ora2pg.darold.net/index.html') as remote_content_type,
+	uri_remotepath_content_type('https://www.darold.net/uri_test.html') as remote_content_type,
 	uri_path_content_type('/etc/fstab') as lpath_content_type,
 	uri_path_content_type('https://avatars2.githubusercontent.com/u/538862?s=40&v=4') as rpath_content_type,
 	uri_localpath_size('PG_VERSION') as local_size,
-	uri_remotepath_size('http://ora2pg.darold.net/index.html') as remote_size,
+	uri_remotepath_size('https://www.darold.net/uri_test.html') as remote_size,
 	uri_path_size('PG_VERSION') as lpath_size,
 	uri_path_size('http://www.darold.net/confs/pgday_2017_partitionnement.pdf') as rpath_size;
 -[ RECORD 1 ]-------+------------------------------
@@ -295,7 +295,7 @@ remote_content_type | text/html
 lpath_content_type  | text/plain; charset=us-ascii
 rpath_content_type  | image/png
 local_size          | 3
-remote_size         | 5469
+remote_size         | 203
 lpath_size          | 3
 rpath_size          | 101596
 
