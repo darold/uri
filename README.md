@@ -224,10 +224,5 @@ License
 
 This extension is free software distributed under the PostgreSQL Licence.
 
-- Copyright (c) 2015-2025, Gilles Darold
+- Copyright (c) 2015-2026, Gilles Darold
 
-URI parsing relies on the uriparser library
-([https://uriparser.github.io/](https://uriparser.github.io/)). Earlier
-releases embedded wrapper code derived from liburi
-([https://github.com/bbcarchdev/liburi](https://github.com/bbcarchdev/liburi));
-that wrapper has been removed in favour of direct uriparser API calls.
