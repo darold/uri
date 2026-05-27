@@ -1,3 +1,56 @@
+Wed May 27 2026 - Version 2.0
+
+This major release is a major rewrite to eliminate the dependency to liburi and
+only rely on liburiparser, it also fixes some issues reported since last release.
+
+  - Fix regression test results for PG version >= 18 because it emits an extra
+    "Disabled: true" annotation in EXPLAIN plans.
+  - Replace embedded liburi wrapper code with direct uriparser API calls
+    
+    The previous implementation kept copy of code derived from liburi
+    (bbcarchdev/liburi, Apache-2.0) that wrapped uriparser in a parallel
+    "URI" struct. Because uriparser was already a hard dependency, this
+    duplication carried no benefit. This commit drops the wrapper and
+    calls uriparser directly:
+    
+      * struct uri_struct / URI typedef / uri_create_* / uri_destroy /
+        uri_reset_ / uri_postparse_* / uri_path_copy_* / uri_hostdata_copy_ /
+        uri_range_copy_ / uri_range_set_ / uri_str / uri_scheme / uri_auth /
+        uri_host / uri_port / uri_portnum / uri_path / uri_query /
+        uri_fragment / uri_absolute / uri_absolute_path / uri_equal /
+        uri_rebase and the IRI preprocessing routines (uri_preprocess_*,
+        uri_wctoutf8_, uri_widebytes_, uri_encode_*, uri_addch_,
+        uri_schemeend_) are gone.
+    
+      * Their roles are filled by uriParseSingleUriA, uriMakeOwnerA,
+        uriNormalizeSyntaxA, uriToStringCharsRequiredA / uriToStringA,
+        uriEqualsUriA, uriAddBaseUriA and uriFreeUriMembersA.
+    
+      * Three small static helpers remain (rewritten, not copied):
+        uri_escape_non_ascii percent-encodes input bytes outside
+        [33,126] so IRI-like inputs still parse; uri_is_non_hierarchical
+        preserves the historical rejection of mailto: / urn: / etc.;
+        uri_to_string / uri_range_dup / uri_path_dup serialise a
+        UriUriA into a malloc'd C string.
+    
+  - Two latent bugs were fixed along the way:
+    
+      * uriParseSingleUriA leaves text ranges pointing into the input
+        buffer. Since uri_parse percent-encodes into a palloc'd scratch
+        buffer, uriMakeOwnerA is now called before freeing it.
+    
+      * uriAddBaseUriA leaves its result pointing into the source URIs.
+        uri_rebase_url now calls uriMakeOwnerA on the result before
+        freeing the inputs (the previous code dodged this because the
+        wrapper deep-copied everything in uri_postparse_).
+    
+    uri.c shrinks from 2512 to 1682 lines.
+
+  - Fix file size regression test. Thanks to Ray Pardiac for the report.
+  - Fix content-length extraction using CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
+    instead of deprecated CURLINFO_CONTENT_LENGTH_DOWNLOAD. Thanks to
+    Ray Pardiac for the report.
+
 Tue Dec 31 2024 - Version 1.3
 
   - Fix compilation error with PG 17. Thanks to Michael Misiewicz for the
