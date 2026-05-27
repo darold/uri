@@ -375,10 +375,11 @@ EXPLAIN (COSTS off) SELECT * FROM t1 JOIN t2 ON t1.url = t2.url AND t1.id = 5;
 ------------------------------------------------
  Nested Loop
    ->  Seq Scan on t2
+         Disabled: true
    ->  Index Scan using t1_hash_index_uri on t1
          Index Cond: (url = t2.url)
          Filter: (id = 5)
-(5 rows)
+(6 rows)
 
 SET enable_seqscan = on;
 SET enable_hashjoin = on;
