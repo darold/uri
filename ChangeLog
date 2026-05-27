@@ -50,6 +50,8 @@ only rely on liburiparser, it also fixes some issues reported since last release
   - Fix content-length extraction using CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
     instead of deprecated CURLINFO_CONTENT_LENGTH_DOWNLOAD. Thanks to
     Ray Pardiac for the report.
+  - Add buffer-length check in uri.c. Thanks to OrbisAI Security for the
+    patch.
 
 Tue Dec 31 2024 - Version 1.3
 
