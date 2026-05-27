@@ -41,7 +41,6 @@ jobs:
 
     - name: test
       run: |
-        export PGHOST=localhost
         make installcheck
 
     - name: show regression diffs
