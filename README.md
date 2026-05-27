@@ -224,12 +224,5 @@ License
 
 This extension is free software distributed under the PostgreSQL Licence.
 
-- Copyright (c) 2015-2025, Gilles Darold
+- Copyright (c) 2015-2026, Gilles Darold
 
-Some parts of the code are original code copied from liburi licensed under
-the terms of the Apache License, Version 2.0. The code have been embeded to
-the extension to avoid dependencies requiring compilation from sources.
-liburi can be found here: [https://github.com/bbcarchdev/liburi](https://github.com/bbcarchdev/liburi)
-
-- Copyright (c) 2012 Mo McRoberts
-- Copyright (c) 2014-2017 BBC

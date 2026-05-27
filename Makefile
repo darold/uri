@@ -10,9 +10,8 @@ DATA = $(wildcard $(EXTENSION)--*.sql)
 
 REGRESS = uri
 
-# add include and library paths for liburi
+# Link against uriparser, libcurl and libmagic
 LIBCURL_CONFIG = curl-config
-PG_CPPFLAGS := -I liburiparser
 SHLIB_LINK := $(shell $(LIBCURL_CONFIG) --libs) -lmagic -luriparser
 
 ifdef NO_PGXS
